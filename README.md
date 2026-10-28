@@ -1,6 +1,6 @@
 # Progetto Agile
 
-Repository del progetto per l'esame di Agile Software Development.
+Repository del progetto per l'esame di Agile.
 
 ## Obiettivo
 
@@ -8,11 +8,10 @@ Questo repository raccoglie codice, documentazione e artefatti del progetto del 
 
 ## Gruppo
 
-SONO DA DEFINIRE QUANDO SARà NECESSARIO
-
 | Ruolo | Membro |
 | --- | --- |
-| Product Owner | `VEDREMO 1` |
-| Scrum Master | `VEDREMO 2` |
-| Developer | `VEDREMO 3` |
-| Developer | `VEDREMO 4` |
+| Product Owner | `Daniele Di Pompeo` |
+| Scrum Master | `Matteo Tessari` |
+| Developer | `Giuseppe Maglione` |
+| Developer | `Anna Maddaloni` |
+| Developer | `Marco Marinanza` |
