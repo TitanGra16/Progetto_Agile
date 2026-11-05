@@ -13,7 +13,7 @@ final class SetupTest extends TestCase
         return [
             'DB_HOST' => '127.0.0.1',
             'DB_PORT' => '3306',
-            'DB_NAME' => 'fitslot_prova',
+            'DB_NAME' => 'fitslot',
             'DB_USER' => 'utente_prova',
             'DB_PASSWORD' => 'password_fittizia',
         ];
@@ -30,7 +30,7 @@ final class SetupTest extends TestCase
         $configurazione = Database::leggiConfigurazione($ambiente);
 
         $this->assertSame(3306, $configurazione['porta']);
-        $this->assertSame('fitslot_prova', $configurazione['nome_database']);
+        $this->assertSame('fitslot', $configurazione['nome_database']);
         $this->assertSame('utente_prova', $configurazione['utente']);
     }
 }

@@ -9,11 +9,17 @@ if ($argc > 1) {
     exit(1);
 }
 
-$operazione = 'lettura della configurazione';
+$operazione = 'caricamento del bootstrap';
 
 try {
     require_once dirname(__DIR__) . '/bootstrap.php';
+    $operazione = 'lettura della configurazione';
     $configurazione = Database::leggiConfigurazione();
+
+    // La configurazione ammette solo host locali e il nome esatto fitslot.
+    echo "ATTENZIONE: il database locale fitslot e tutti i suoi dati saranno eliminati.\n";
+    echo "Il reset verra eseguito automaticamente.\n";
+
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
     // 1. Ci colleghiamo a MySQL senza selezionare ancora un database.
@@ -27,11 +33,15 @@ try {
     );
     $connessione->set_charset('utf8mb4');
 
-    // 2. Creiamo il database solo se manca.
-    $operazione = 'preparazione del database';
-    $nomeDatabase = $configurazione['nome_database'];
-    $connessione->query("CREATE DATABASE IF NOT EXISTS `$nomeDatabase` CHARACTER SET utf8mb4");
-    $connessione->select_db($nomeDatabase);
+    // 2. Ripartiamo da un database vuoto. Il nome nelle query e fisso.
+    $operazione = 'eliminazione del database fitslot';
+    $connessione->query('DROP DATABASE IF EXISTS `fitslot`');
+    echo "[OK] Database fitslot eliminato, se presente.\n";
+
+    $operazione = 'creazione del database fitslot';
+    $connessione->query('CREATE DATABASE `fitslot` CHARACTER SET utf8mb4');
+    $connessione->select_db('fitslot');
+    echo "[OK] Database fitslot ricreato vuoto.\n";
 
     // 3. Eseguiamo prima le migration e poi i seed, in ordine di nome.
     $cartellaProgetto = dirname(__DIR__);
@@ -65,10 +75,14 @@ try {
     }
 
     $connessione->close();
-    echo "Database pronto. File SQL eseguiti: $fileEseguiti.\n";
+    echo "Reset completato. File SQL eseguiti: $fileEseguiti.\n";
 } catch (Throwable $errore) {
-    // Non mostriamo messaggi SQL o dettagli che possono contenere credenziali.
-    fwrite(STDERR, "Errore durante $operazione (codice " . $errore->getCode() . ").\n");
-    fwrite(STDERR, "Controllare la configurazione e i file SQL. Le istruzioni gia eseguite potrebbero essere rimaste applicate: non ritentare alla cieca.\n");
+    if ($operazione === 'lettura della configurazione' && $errore instanceof InvalidArgumentException) {
+        fwrite(STDERR, "Errore di configurazione: " . $errore->getMessage() . "\n");
+    } else {
+        // I messaggi delle librerie e di MySQL possono contenere dati riservati.
+        fwrite(STDERR, "Errore durante $operazione (codice " . $errore->getCode() . "). Controllare .env, MySQL e i file SQL.\n");
+        fwrite(STDERR, "Se il reset era gia iniziato, il database potrebbe essere vuoto o ricreato solo in parte. Non e previsto rollback.\n");
+    }
     exit(1);
 }

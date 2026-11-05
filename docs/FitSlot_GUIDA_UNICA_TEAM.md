@@ -191,12 +191,12 @@ Per il setup locale senza password, dopo aver adattato il codice come spiegato a
 ```dotenv
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_NAME=fitslot_dev
+DB_NAME=fitslot
 DB_USER=root
 DB_PASSWORD=
 ```
 
-DB_PASSWORD puo essere vuota oppure contenere la password del proprio MySQL locale. La chiave deve essere presente nel file .env. Il codice non modifica gli account MySQL e non richiede variabili aggiuntive per distinguere gli ambienti. Leggere il paragrafo 5.1.
+DB_PASSWORD puo essere vuota oppure contenere la password del proprio MySQL locale. Se la chiave viene omessa, il codice usa una stringa vuota. Il codice non modifica gli account MySQL e non richiede variabili aggiuntive per distinguere gli ambienti. Leggere il paragrafo 5.1.
 
 ### 4.4 Preparare il database e avviare FitSlot
 
@@ -210,7 +210,7 @@ composer start
 
 Aprire **http://127.0.0.1:8000** nel browser. Per interrompere il server, tornare nel terminale e premere `Ctrl + C`.
 
-**Importante:** `composer start` avvia soltanto PHP e non esegue SQL. MySQL va avviato separatamente in Laragon. Il comando `composer db:setup` riesegue tutti i file SQL presenti: controllarli prima di usarlo su un database gia popolato.
+**Importante:** `composer start` avvia soltanto PHP e non elimina dati. MySQL va avviato separatamente in Laragon. `composer db:setup` e invece un reset distruttivo automatico: elimina tutte le tabelle e tutti i dati di fitslot senza richiedere conferma. Non eseguirlo per avviare semplicemente il sito.
 
 ## 5. Database locale, senza password e migration
 
@@ -226,12 +226,12 @@ Aprire **http://127.0.0.1:8000** nel browser. Per interrompere il server, tornar
 - Il sito locale deve essere avviato su `127.0.0.1`, non pubblicato su un host esterno.
 - Ogni sviluppatore usa **il proprio database locale**.
 - `.env` deve restare escluso da Git.
-- DB_HOST, DB_PORT, DB_NAME e DB_USER restano obbligatorie e non vuote. DB_PASSWORD deve essere presente, ma puo essere vuota o valorizzata.
+- DB_HOST, DB_PORT, DB_NAME e DB_USER restano obbligatorie e non vuote. DB_PASSWORD puo essere vuota, omessa o valorizzata.
 - Per una demo condivisa, hosting o dati reali: creare un account MySQL dedicato con password e privilegi minimi.
 
-**Regola applicata dal codice:** `Database::leggiConfigurazione()` richiede DB_HOST, DB_PORT, DB_NAME e DB_USER presenti e non vuote. Anche DB_PASSWORD deve essere presente e contenere una stringa: la stringa vuota e valida, cosi come una password valorizzata. Non serve una variabile per distinguere gli ambienti e non esiste un fallback su root.
+**Regola applicata dal codice:** `Database::leggiConfigurazione()` richiede DB_HOST, DB_PORT, DB_NAME e DB_USER presenti e non vuote. DB_PASSWORD puo contenere una stringa vuota oppure la propria password; se omessa viene usata una stringa vuota. Non serve una variabile per distinguere gli ambienti e non esiste un fallback su root.
 
-La stessa validazione e usata da `Database::connetti()` e da `scripts/db-setup.php`. I test unitari verificano password vuote, password valorizzate e variabili mancanti, senza collegarsi a MySQL. `.env.example` contiene DB_PASSWORD vuota. Il file .env personale non viene modificato automaticamente.
+La stessa validazione e usata da `Database::connetti()` e da `scripts/db-setup.php`: sono ammessi soltanto gli host 127.0.0.1 e localhost e il nome esatto fitslot. I test unitari verificano la configurazione senza collegarsi a MySQL. `.env.example` contiene DB_NAME=fitslot, DB_USER=root e DB_PASSWORD vuota. Il file .env personale va adattato manualmente e non viene modificato dal codice.
 
 ### 5.2 MySQL non è GitHub
 
@@ -242,24 +242,29 @@ La stessa validazione e usata da `Database::connetti()` e da `scripts/db-setup.p
 
 ### 5.3 Cosa fa composer db:setup
 
-1. Legge la stessa configurazione usata da `Database::connetti()`.
-2. Si collega a MySQL e crea il database soltanto se manca.
-3. Esegue tutti gli eventuali SQL di `database/migrations/`, poi quelli di `database/seed/`, ordinati per nome.
-4. Si ferma se incontra un errore, indicando l'operazione in corso senza stampare credenziali.
+**ATTENZIONE: il database locale fitslot e tutti i suoi dati saranno eliminati.** Il comando e un reset completo, non un aggiornamento che conserva i dati.
 
-Il setup attuale non contiene SQL delle User Story. Se non trova file, prepara il database e stampa zero file eseguiti. Le tabelle applicative arriveranno con le rispettive User Story.
+Ogni sviluppatore usa il proprio database locale chiamato esattamente `fitslot`. Prima del reset verificare nel proprio .env DB_NAME=fitslot, DB_HOST=127.0.0.1 oppure localhost e le proprie credenziali. Non cambiare automaticamente il file personale copiandoci sopra il modello.
 
-Non esiste uno storico delle esecuzioni. L'eventuale tabella `schema_migrations` gia presente resta intatta ma non viene usata. Non servono impronte o opzioni aggiuntive: usare soltanto `composer db:setup`.
+1. Lo script legge `Database::leggiConfigurazione()` e rifiuta host non locali e nomi diversi da fitslot.
+2. Mostra l'avviso e procede automaticamente senza richiedere input.
+3. Si collega a MySQL, elimina fitslot se presente e lo ricrea con charset utf8mb4.
+5. Esegue prima tutti gli SQL di `database/migrations/`, poi quelli di `database/seed/`, in ordine alfabetico all'interno di ogni cartella.
+6. Stampa il numero di file eseguiti e termina. Le tabelle e i dati di esempio vengono ricostruiti soltanto dagli SQL versionati.
 
-### 5.4 Regole per i file SQL
+Il setup iniziale non contiene SQL delle User Story. Questi file saranno aggiunti nei rispettivi branch, insieme alla funzionalita. Se mancano le cartelle o non ci sono SQL, il reset funziona comunque e lascia fitslot completamente vuoto.
 
-- Tutti i file presenti vengono rieseguiti a ogni setup: verificarne la ripetibilita con il gruppo.
-- `CREATE TABLE IF NOT EXISTS` crea una tabella mancante ma non aggiorna una tabella gia esistente.
-- I seed devono evitare inserimenti duplicati; eventuali vincoli univoci vanno rispettati.
-- Un futuro `ALTER TABLE` puo fallire alla seconda esecuzione: concordare come applicarlo senza inserirlo alla cieca fra i file ripetuti.
-- Non lanciare due setup contemporaneamente e non cancellare tabelle per far sparire un errore.
-- Un file con piu istruzioni puo essere applicato solo in parte: MySQL puo confermare i DDL anche se un'istruzione successiva fallisce. Controllare lo schema prima di riprovare.
-- Dopo un `git pull`, leggere le istruzioni dell'autore degli SQL. Git aggiorna i file del progetto, non il database personale.
+Non vengono usati schema_migrations, checksum, storico delle esecuzioni o rollback. Anche un'eventuale vecchia tabella tecnica presente in fitslot viene eliminata insieme al database.
+
+### 5.4 Regole per il reset e i file SQL
+
+- Non eseguire il reset se ci sono dati da conservare: tutti i dati vengono cancellati definitivamente.
+- Ogni reset esegue tutti i file da un database vuoto; non applica solo quelli nuovi.
+- Le migration e i seed delle User Story appartengono ai rispettivi branch e devono ricostruire lo schema e gli esempi necessari in ordine corretto.
+- Non eseguire due reset contemporaneamente.
+- Se un SQL fallisce, il comando si ferma. Il vecchio database e gia stato eliminato e quello nuovo puo essere parziale: non esiste rollback.
+- Dopo un git pull leggere le istruzioni della PR e decidere consapevolmente se ricostruire fitslot. Git non trasferisce i dati personali di MySQL.
+- `composer start` avvia soltanto il server PHP e non elimina alcun dato.
 
 ### 5.5 Controlli manuali in sola lettura
 
@@ -267,11 +272,11 @@ Aprire il client MySQL dal terminale Laragon. Usare il proprio account; aggiunge
 
 ```sql
 SHOW DATABASES;
-USE fitslot_dev;
+USE fitslot;
 SHOW TABLES;
 ```
 
-Adattare il nome del database al proprio .env. Su un ambiente nuovo senza SQL applicativi e normale non trovare ancora tabelle. Il client MySQL non e richiesto dal runner: `composer db:setup` usa PHP e MySQLi.
+Il database locale deve chiamarsi fitslot. Senza SQL applicativi e normale non trovare tabelle dopo il reset. I controlli qui sopra leggono soltanto i metadati; non eseguono il reset.
 
 ### 5.6 Se serve `mysql` nel terminale VS Code
 
@@ -306,7 +311,7 @@ git status
 
 4. Se si sta per **iniziare una nuova User Story**, seguire §8.2 per partire da `Main` aggiornato.
 5. Se si sta **continuando un branch già attivo**, non cambiare su `Main` indiscriminatamente: aggiornare il proprio branch quando necessario come al §8.5.
-6. Se da `Main` sono arrivati nuovi SQL, concordare con l'autore quando applicarli. `composer db:setup` riesegue anche quelli precedenti; usarlo solo dopo aver controllato che i file presenti siano ripetibili:
+6. Se da `Main` sono arrivati nuovi SQL, leggere le istruzioni della PR. Installare le dipendenze se necessario. Eseguire il reset soltanto se si accetta di perdere tutti i dati locali: il comando successivo cancella automaticamente il database.
 
 ```powershell
 composer install
@@ -326,7 +331,7 @@ composer start
 | `composer install` | Prima installazione e dopo aggiornamenti a `composer.lock` |
 | `composer validate --strict --no-check-publish` | Dopo modifiche a Composer e prima della PR |
 | `composer check-platform-reqs` | Controllare PHP e le estensioni richieste |
-| `composer db:setup` | Prima installazione o dopo nuove migration **verificate** |
+| `composer db:setup` | Solo per ricostruire fitslot da zero: elimina automaticamente tutti i dati |
 | `composer start` | Avvia il server PHP locale senza modificare il DB |
 | `composer test:unit` | Prima di commit e PR; test rapidi senza dipendenza dal DB |
 | `git status` | Prima e dopo modifiche Git |
@@ -655,7 +660,7 @@ I **ruoli applicativi** (iscritto, reception, istruttore, responsabile) non coin
 | `mysqli` assente | Estensione PHP non abilitata | Verificare `php -m` e la configurazione della versione PHP usata |
 | `XML declaration allowed only at the start` | Spazi/BOM prima di `<?xml` | Salvare `phpunit.xml` UTF-8 senza BOM, con `<?xml` come primi caratteri |
 | `composer db:setup` dice che manca `.env` | Non creato il file locale | `Copy-Item .env.example .env` e configurarlo |
-| Password vuota rifiutata | Chiave DB_PASSWORD assente o valore non testuale | Inserire DB_PASSWORD= nel proprio .env e verificare che l'account MySQL locale accetti la password configurata |
+| Accesso MySQL rifiutato | Account o password non corrispondenti alla configurazione MySQL locale | Verificare DB_USER e DB_PASSWORD nel proprio .env; il codice accetta la password vuota ma l'account MySQL deve consentirla |
 | Database collegato ma tabella mancante | Migration non applicata sul DB locale | Controllare quali SQL sono effettivamente presenti; il setup iniziale non contiene ancora tabelle delle User Story |
 | Nuova tabella del compagno non appare | `git pull` non copia il database | Scaricare la migration con Git e applicarla sul proprio MySQL |
 | `git switch Main` non funziona | Branch `Main` locale non ancora creato o nome diverso | `git branch -a`; verificare `origin/Main` e creare il tracking branch se necessario |
@@ -694,10 +699,10 @@ I **ruoli applicativi** (iscritto, reception, istruttore, responsabile) non coin
 Alla data di stesura del documento, la revisione statica di Codex ha mostrato un setup molto vicino al completamento. **Non trasformare questi punti aperti in affermazioni già verificate:**
 
 1. **Password vuota:** supportata insieme alle password valorizzate, senza variabili aggiuntive per gli ambienti. Ogni compagno configura il proprio MySQL locale. La connessione effettiva e il runner restano da provare nel proprio ambiente; i test unitari controllano la validazione senza usare MySQL.
-2. **Setup senza storico:** `composer db:setup` esegue tutti gli SQL presenti, senza registro, impronte o blocchi fra processi. L'eventuale vecchia tabella schema_migrations resta intatta e inutilizzata. Prima di nuovi SQL verificare la ripetibilita con il team.
+2. **Reset completo:** composer db:setup elimina e ricrea solo fitslot su 127.0.0.1 o localhost, senza conferma. Esegue tutti gli SQL del repository senza storico o rollback. Non e un comando da avviare automaticamente.
 3. **Workflow:** controllare se entrambi i file `.github/workflows/php-tests.yml` e `.github/workflows/php-test.yml` siano davvero necessari. Rimuovere il workflow obsoleto solo dopo revisione.
 4. **Test reale della CI:** il file YAML era stato analizzato staticamente, ma **l'esecuzione effettiva su GitHub** andrà verificata sulla PR del setup.
-5. **Prova del runner su ambiente pulito:** oltre ai test unitari, verificare quando possibile `composer db:setup` su un nuovo database di sviluppo, senza usare il database con dati importanti.
+5. **Prova del runner su ambiente pulito:** oltre ai test unitari, verificare quando possibile `composer db:setup` sul proprio fitslot locale solo dopo aver salvato gli eventuali dati importanti. Non usare il comando per una semplice verifica di connessione.
 6. **Documentazione storica:** una guida precedente conteneva esempi PDO e comandi `main` minuscolo; non usarla per il setup attuale senza allinearla. Questa guida usa **MySQLi** e **`Main`**.
 
 ### Come verificare che il setup sia pronto da pubblicare
@@ -713,7 +718,7 @@ git status --short
 git diff --check
 ```
 
-Verificare inoltre manualmente che il sito locale si colleghi a MySQL, che `composer db:setup` non dia errori sul DB di sviluppo e che i segreti non entrino nel commit. Dopo il push, confermare la CI verde e ottenere la review richiesta prima del merge.
+Verificare inoltre manualmente che il sito locale si colleghi a MySQL, che le protezioni del reset siano coperte dai test; provare il reset reale solo quando si accetta la perdita dei dati locali e che i segreti non entrino nel commit. Dopo il push, confermare la CI verde e ottenere la review richiesta prima del merge.
 
 ---
 

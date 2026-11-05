@@ -14,6 +14,12 @@ final class Database
     {
         if ($ambiente === null) {
             $ambiente = $_ENV;
+            // Le variabili gia fornite dal terminale possono essere solo in $_SERVER.
+            foreach (['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'] as $variabile) {
+                if (!isset($ambiente[$variabile]) && isset($_SERVER[$variabile])) {
+                    $ambiente[$variabile] = $_SERVER[$variabile];
+                }
+            }
         }
         foreach (['DB_HOST', 'DB_USER', 'DB_NAME', 'DB_PORT'] as $variabile) {
             if (!isset($ambiente[$variabile]) || !is_string($ambiente[$variabile]) || trim($ambiente[$variabile]) === '') {
@@ -21,24 +27,18 @@ final class Database
             }
         }
 
-        // La chiave resta obbligatoria anche quando la password e vuota.
-        if (!isset($ambiente['DB_PASSWORD']) || !is_string($ambiente['DB_PASSWORD'])) {
-            throw new InvalidArgumentException('Configurazione mancante o non valida: DB_PASSWORD');
+        // Per MySQL locale la password puo essere vuota o non specificata.
+        if (!isset($ambiente['DB_PASSWORD'])) {
+            $ambiente['DB_PASSWORD'] = '';
         }
-        $nomeDatabase = $ambiente['DB_NAME'];
-        $lettere = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
-        $caratteriConsentiti = $lettere . '0123456789';
-
-        // Il nome deve iniziare con una lettera o un trattino basso.
-        if (strlen($nomeDatabase) > 64 || !str_contains($lettere, $nomeDatabase[0])) {
-            throw new InvalidArgumentException('DB_NAME non valido');
+        if (!is_string($ambiente['DB_PASSWORD'])) {
+            throw new InvalidArgumentException('DB_PASSWORD deve essere una stringa');
         }
-
-        // Gli altri caratteri possono essere anche numeri.
-        for ($indice = 0; $indice < strlen($nomeDatabase); $indice++) {
-            if (!str_contains($caratteriConsentiti, $nomeDatabase[$indice])) {
-                throw new InvalidArgumentException('DB_NAME contiene caratteri non consentiti');
-            }
+        if ($ambiente['DB_HOST'] !== '127.0.0.1' && $ambiente['DB_HOST'] !== 'localhost') {
+            throw new InvalidArgumentException('DB_HOST deve essere 127.0.0.1 oppure localhost');
+        }
+        if ($ambiente['DB_NAME'] !== 'fitslot') {
+            throw new InvalidArgumentException('DB_NAME deve essere esattamente fitslot');
         }
         if (!ctype_digit($ambiente['DB_PORT'])) {
             throw new InvalidArgumentException('DB_PORT deve contenere solo numeri');
