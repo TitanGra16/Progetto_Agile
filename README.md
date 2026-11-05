@@ -46,20 +46,6 @@ Copiare il modello solo se `.env` non esiste: non sovrascrivere la configurazion
 
 Usare `composer install`, non `composer update`, per installare le versioni del lock condiviso. `bootstrap.php` carica `vendor/autoload.php` e phpdotenv. Il namespace PSR-4 e `Ladythelemons\Fitslot\`, associato a `src/`.
 
-### Utenza MySQL locale dedicata
-
-Per il laboratorio si puo usare il proprio account MySQL locale, con o senza password. Configurare DB_USER e DB_PASSWORD di conseguenza nel proprio .env. Se si preferisce creare un'utenza dedicata, le istruzioni SQL seguenti sono da eseguire manualmente da una sessione amministrativa locale aperta con `mysql -u root -p`. Sostituire il segnaposto con la password scelta per quell'account, senza inserirla in file versionati.
-
-```sql
-CREATE DATABASE IF NOT EXISTS fitslot_dev
-    CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'fitslot_local'@'127.0.0.1'
-    IDENTIFIED BY '<PASSWORD_LOCALE_DA_SCEGLIERE>';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES
-    ON fitslot_dev.* TO 'fitslot_local'@'127.0.0.1';
-```
-
-Sono nomi di esempio coerenti con .env.example: adattarli al database scelto. Usare DB_HOST=127.0.0.1 per l'account dell'esempio. Se l'account esiste gia, verificarlo e gestirlo con l'amministratore invece di ricrearlo. I privilegi sono limitati a questo database e comprendono i DDL necessari al setup locale e ai futuri file SQL; nessun privilegio globale o DROP e richiesto dagli SQL attuali. Per un ambiente distribuito separare utenza di migration e utenza applicativa: quest'ultima necessita normalmente soltanto di SELECT, INSERT, UPDATE e DELETE. Eventuali future migration possono richiedere una revisione esplicita dei permessi.
 
 ## Setup esplicito del database
 
@@ -67,7 +53,7 @@ Sono nomi di esempio coerenti con .env.example: adattarli al database scelto. Us
 composer db:setup
 ```
 
-Questo e un comando che modifica il database configurato: eseguirlo consapevolmente, dopo verifica della configurazione e backup dei dati importanti. Non viene eseguito da installazione, avvio del server o test unitari.
+Questo è un comando che modifica il database configurato: eseguirlo consapevolmente, dopo verifica della configurazione e backup dei dati importanti. Non viene eseguito da installazione, avvio del server o test unitari.
 
 Lo script legge la configurazione condivisa con l'applicazione, crea il database solo se manca ed esegue tutti gli eventuali file SQL: prima quelli in `database/migrations/`, poi quelli in `database/seed/`, ordinati per nome.
 
