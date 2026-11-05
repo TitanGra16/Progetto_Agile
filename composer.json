@@ -1,0 +1,25 @@
+{
+    "name": "ladythelemons/fitslot",
+    "description": "Progetto agile 2026-2027",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.4",
+        "ext-mysqli": "*",
+        "vlucas/phpdotenv": "^5.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ladythelemons\\Fitslot\\": "src/"
+        }
+    },
+    "scripts": {
+        "test": "@php vendor/phpunit/phpunit/phpunit",
+        "test:unit": "@php vendor/phpunit/phpunit/phpunit --testsuite Unit",
+        "db:setup": "@php scripts/db-setup.php",
+        "start": "@php -S 127.0.0.1:8000 -t public"
+    }
+}

@@ -22,7 +22,7 @@ Questo documento risponde a quattro domande: **cosa installare, come organizzare
 6. [Creazione del progetto e configurazione di Composer](#06-composer)
 7. [Database minimo dello Sprint 1](#07-database)
 8. [Migrazioni SQL e sincronizzazione dei database](#08-migrazioni)
-9. [Connessione sicura a MySQL con PDO](#09-pdo)
+9. [Connessione sicura a MySQL con MySQLi](#09-mysqli)
 10. [UE-01: esempio di implementazione a livelli](#10-ue01)
 11. [Frontend HTML, CSS e JavaScript](#11-frontend)
 12. [Test automatici con PHPUnit](#12-test)
@@ -52,7 +52,7 @@ Questo documento risponde a quattro domande: **cosa installare, come organizzare
 | Backend | **PHP 8.4** | Il gruppo ne conosce già la sintassi; compatibile con PHPUnit 13. |
 | Frontend | **HTML5 + CSS3 + JavaScript** | Competenze già presenti; nessuna necessità iniziale di React/Vue. |
 | Database | **MySQL 8.4 LTS**, tabelle **InnoDB** | SQL conosciuto dal gruppo, chiavi esterne, transazioni e concorrenza. |
-| Connessione SQL | **PDO + `pdo_mysql`** | Query parametrizzate e gestione delle transazioni. |
+| Connessione SQL | **MySQLi + `mysqli`** | Query parametrizzate e gestione delle transazioni. |
 | Librerie PHP | **Composer 2** | L'equivalente pratico di Maven per dipendenze, autoload e comandi. |
 | Test | **PHPUnit 13** | Test unitari e d'integrazione eseguibili da terminale e in CI. |
 | Variabili locali | **`vlucas/phpdotenv`** | Lettura del file `.env` locale; il file non viene versionato. |
@@ -66,7 +66,7 @@ Questo documento risponde a quattro domande: **cosa installare, come organizzare
 
 ### Regole non negoziabili del gruppo
 
-1. **Un solo repository** per l'applicazione; una sola versione ufficiale in `main`.
+1. **Un solo repository** per l'applicazione; una sola versione ufficiale in `Main`.
 2. **Un branch per ogni User Story**: `feature/UE-XX-descrizione`. Fanno eccezione i task tecnici iniziali, che usano `chore/...`.
 3. Ogni storia sviluppa il proprio percorso verticale: eventuale SQL + Model + Repository + Service + Controller + interfaccia + test.
 4. Le regole di business vanno nel **Service**, le query nel **Repository**. Non scrivere query nei form HTML o nei Controller.
@@ -84,7 +84,7 @@ flowchart TD
     C["public/index.php: router"]
     D["Controller: riceve input / restituisce risposta"]
     E["Service: regole di business"]
-    F["Repository: PDO + SQL parametrizzato"]
+    F["Repository: MySQLi + SQL parametrizzato"]
     G[("MySQL: tabelle e vincoli")]
     A --> B --> C --> D --> E --> F --> G
     G --> F --> E --> D -->|"HTML o JSON"| A
@@ -104,7 +104,7 @@ flowchart TD
 ## 3. Cosa installare su tutti e quattro i computer
 
 1. **Git** e un account GitHub autorizzato al repository.
-2. **PHP 8.4**, versione da terminale (*CLI*), con estensioni `pdo_mysql`, `mbstring`, `dom`, `xml`, `xmlwriter` e le altre richieste da Composer/PHPUnit.
+2. **PHP 8.4**, versione da terminale (*CLI*), con estensioni `mysqli`, `mbstring`, `dom`, `xml`, `xmlwriter` e le altre richieste da Composer/PHPUnit.
 3. **Composer 2**.
 4. **MySQL 8.4 LTS** e un client SQL (MySQL CLI, DBeaver o MySQL Workbench).
 5. **VS Code** oppure IDE preferito, con estensione PHP IntelliSense (facoltativa).
@@ -120,7 +120,7 @@ git --version
 mysql --version
 ```
 
-Con `php -m` deve comparire **`pdo_mysql`**, non soltanto `PDO`. Se manca, abilitate l'estensione nella configurazione PHP: il progetto può essere corretto ma non riuscire a collegarsi a MySQL.
+Con `php -m` deve comparire **`mysqli`**. Se manca, abilitate l'estensione nella configurazione PHP: il progetto può essere corretto ma non riuscire a collegarsi a MySQL.
 
 **Windows/XAMPP:** controllate quale `php.exe` viene usato da terminale (`where php`). La versione del PHP del browser e quella del terminale possono essere diverse. Verificate anche il MySQL compatibile realmente in uso (XAMPP in alcune installazioni offre MariaDB: **non dichiaratelo MySQL 8.4** senza controllare). Una strada semplice è usare PHP 8.4 e MySQL separati; l'importante è che tutti documentino la stessa combinazione.
 
@@ -142,10 +142,10 @@ FitSlot/
 │   └── GruppoXX.xlsx                      # copia del Product Backlog
 ├── database/
 │   ├── migrations/
-│   │   ├── 001_create_utenti_ruoli.sql
+│   │   ├── 01-create_utenti.sql
 │   │   └── 002_....sql                    # futuro, non creare per finta
 │   └── seed/
-│       └── 001_ruoli.sql
+│       └── 01-ruoli.sql
 ├── public/                                # UNICA cartella pubblica via HTTP
 │   ├── index.php                          # front controller / router
 │   ├── registrazione.html                 # schermata di esempio UE-01
@@ -162,7 +162,7 @@ FitSlot/
 │   │   └── Ruolo.php
 │   ├── Repository/
 │   │   ├── UtenteRepository.php           # interfaccia
-│   │   └── PdoUtenteRepository.php        # query MySQL
+│   │   └── MysqliUtenteRepository.php        # query MySQL
 │   ├── Service/
 │   │   └── UtenteService.php
 │   └── Controller/
@@ -183,8 +183,8 @@ FitSlot/
 
 ### Convenzioni per le classi
 
-- **Namespace** `App\DataModel`, `App\Repository`, `App\Service`, `App\Controller`.
-- **PSR-4:** `App\` punta a `src/`; classi e file con lo stesso nome e maiuscole coerenti.
+- **Namespace** `Ladythelemons\Fitslot\DataModel`, `Ladythelemons\Fitslot\Repository`, `Ladythelemons\Fitslot\Service`, `Ladythelemons\Fitslot\Controller`.
+- **PSR-4:** `Ladythelemons\Fitslot\` punta a `src/`; classi e file con lo stesso nome e maiuscole coerenti.
 - **Classi:** `Utente`, `UtenteService`; **metodi:** `registraUtente()`, `cercaPerCodice()`; **tabelle:** `utenti`, `utenti_ruoli`.
 - **Un file per classe**, proprietà tipizzate, `declare(strict_types=1);` nei nuovi file PHP.
 - Gli oggetti del dominio **non devono conoscere** `$_POST`, `$_SESSION`, SQL o il browser.
@@ -226,33 +226,29 @@ Se `composer init` chiede nome e descrizione, potete usare `ladythelemons/fitslo
 
 ```json
 {
-  "name": "ladythelemons/fitslot",
-  "description": "Progetto universitario FitSlot",
-  "license": "proprietary",
-  "type": "project",
-  "require": {
-    "php": "^8.4",
-    "ext-pdo": "*",
-    "ext-pdo_mysql": "*",
-    "vlucas/phpdotenv": "^5.6"
-  },
-  "require-dev": {
-    "phpunit/phpunit": "^13.0"
-  },
-  "autoload": {
-    "psr-4": {
-      "App\\": "src/"
+    "name": "ladythelemons/fitslot",
+    "description": "Progetto agile 2026-2027",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.4",
+        "ext-mysqli": "*",
+        "vlucas/phpdotenv": "^5.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ladythelemons\\Fitslot\\": "src/"
+        }
+    },
+    "scripts": {
+        "test": "@php vendor/phpunit/phpunit/phpunit",
+        "test:unit": "@php vendor/phpunit/phpunit/phpunit --testsuite Unit",
+        "db:setup": "@php scripts/db-setup.php",
+        "start": "@php -S 127.0.0.1:8000 -t public"
     }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Tests\\": "tests/"
-    }
-  },
-  "scripts": {
-    "test": "@php vendor/bin/phpunit --bootstrap vendor/autoload.php tests",
-    "test:unit": "@php vendor/bin/phpunit --bootstrap vendor/autoload.php tests/Unit"
-  }
 }
 ```
 
@@ -282,48 +278,49 @@ Le storie candidate sono **UE-01** (registrazione), **UE-02** (ricerca), **UE-03
 
 > **Assunzione didattica da approvare:** nell'esempio iniziale ogni iscritto ha un'email univoca. Prima di rendere definitivo lo schema, confrontate tutti i campi obbligatori con i criteri reali della UE-01. In particolare, la registrazione in reception e l'attivazione delle credenziali online non sono necessariamente lo stesso passaggio. Il campo `password_hash` può quindi inizialmente essere `NULL`.
 
-File: `database/migrations/001_create_utenti_ruoli.sql`
+File: `database/migrations/01-create_utenti.sql`
 
 ```sql
-CREATE TABLE utenti (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    codice_iscritto VARCHAR(32) NOT NULL,
+CREATE TABLE IF NOT EXISTS utenti (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    codice_iscritto VARCHAR(30) NOT NULL UNIQUE,
     nome VARCHAR(100) NOT NULL,
     cognome VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(190) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NULL,
-    creato_il TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    UNIQUE KEY uk_utenti_codice (codice_iscritto),
-    UNIQUE KEY uk_utenti_email (email)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
 
-CREATE TABLE ruoli (
-    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    nome VARCHAR(30) NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE KEY uk_ruoli_nome (nome)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS ruoli (
+    id SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL UNIQUE
+) ENGINE=InnoDB;
 
-CREATE TABLE utenti_ruoli (
+CREATE TABLE IF NOT EXISTS utenti_ruoli (
     utente_id BIGINT UNSIGNED NOT NULL,
-    ruolo_id INT UNSIGNED NOT NULL,
+    ruolo_id SMALLINT UNSIGNED NOT NULL,
+
     PRIMARY KEY (utente_id, ruolo_id),
-    CONSTRAINT fk_ur_utente FOREIGN KEY (utente_id)
-        REFERENCES utenti(id),
-    CONSTRAINT fk_ur_ruolo FOREIGN KEY (ruolo_id)
+
+    FOREIGN KEY (utente_id)
+        REFERENCES utenti(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (ruolo_id)
         REFERENCES ruoli(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
 ```
 
-File: `database/seed/001_ruoli.sql`
+File: `database/seed/01-ruoli.sql`
 
 ```sql
-INSERT IGNORE INTO ruoli (nome) VALUES
-    ('ISCRITTO'),
-    ('RECEPTION'),
-    ('ISTRUTTORE'),
-    ('GESTORE');
+INSERT IGNORE INTO ruoli (nome)
+VALUES
+    ('iscritto'),
+    ('receptionist'),
+    ('istruttore'),
+    ('responsabile');
 ```
 
 **Motivo del ponte `utenti_ruoli`:** un account può avere più ruoli contemporaneamente (es. un istruttore è anche iscritto). Per questo **non** basta una colonna `ruolo` dentro `utenti`.
@@ -333,100 +330,33 @@ INSERT IGNORE INTO ruoli (nome) VALUES
 <a id="08-migrazioni"></a>
 ## 8. Migrazioni SQL e sincronizzazione dei database
 
-### Regola fondamentale
+Ogni membro usa un database locale e gli stessi SQL versionati. Il comando esplicito `composer db:setup` applica prima le migration, poi i seed, ordinati per nome nelle rispettive cartelle. I file iniziali sono `database/migrations/01-create_utenti.sql` e `database/seed/01-ruoli.sql`. `composer start` avvia soltanto il server.
 
-**Ognuno lavora su un proprio database locale, ma tutti applicano gli stessi script SQL versionati.** GitHub contiene la *struttura*, non un database già popolato.
+Per creare un'utenza locale dedicata e configurare i permessi, seguire il [README](../README.md). Non usare l'account amministrativo nell'applicazione e non importare manualmente SQL sul DB di sviluppo aggirando il registro.
 
-Procedura iniziale (MySQL CLI, nel terminale che supporta la redirezione `<`, per esempio Git Bash o cmd):
+Il runner usa `schema_migrations`, un lock MySQL per database, checksum SHA-256 con terminatori di riga normalizzati e uno stato di esecuzione. Mantiene compatibili i nomi gia registrati ed estende il registro esistente senza ricrearlo. Non modificare o rinominare SQL gia applicati: aggiungere una nuova migration con nome univoco e ordine concordato nella PR. Non cancellare tabelle o dati dei colleghi.
 
-```bash
-mysql -u root -p -e "CREATE DATABASE fitslot_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p fitslot_dev < database/migrations/001_create_utenti_ruoli.sql
-mysql -u root -p fitslot_dev < database/seed/001_ruoli.sql
-```
+Per registri precedenti senza checksum serve una verifica manuale di schema e SQL prima della baseline esplicita `composer db:setup -- --registra-impronte`. Il comando registra i checksum mancanti senza eseguire migration o seed; non dimostra quale contenuto sia stato eseguito in passato.
 
-Create anche un **utente DB dedicato** all'applicazione, con una password scelta da ciascun membro. Per esempio, da un terminale locale con il client MySQL (sostituite `PASSWORD_FORTE_LOCALE`):
+Un errore SQL, un warning o uno stato incompleto interrompono il setup. I DDL MySQL possono produrre commit impliciti e modifiche parziali: non ritentare alla cieca e non rimuovere righe del registro per forzare una riesecuzione. Concordare il recupero con il team dopo aver verificato schema, registro e backup. Dettagli operativi nel [README](../README.md).
 
-```bash
-mysql -u root -p -e "CREATE USER IF NOT EXISTS 'fitslot_dev'@'127.0.0.1' IDENTIFIED BY 'PASSWORD_FORTE_LOCALE'; GRANT SELECT, INSERT, UPDATE, DELETE ON fitslot_dev.* TO 'fitslot_dev'@'127.0.0.1';"
-```
+<a id="09-mysqli"></a>
+## 9. Connessione sicura a MySQL con MySQLi
 
-Se l'utente era già presente, **`CREATE USER IF NOT EXISTS` non cambia la sua password**: aggiornatela separatamente con `ALTER USER` se necessario. Il DB viene creato e le migrazioni vengono applicate dall'amministratore, mentre il codice PHP usa soltanto l'utente limitato `fitslot_dev`. Non usate `root` dall'applicazione. L'esempio di password serve esclusivamente per la configurazione **locale** e non va copiato nel repository.
+Copiare `.env.example` in `.env` e configurare DB_HOST, DB_PORT, DB_NAME, DB_USER e DB_PASSWORD per il proprio MySQL locale. Le prime quattro variabili sono obbligatorie e non vuote. Anche DB_PASSWORD deve essere presente, ma puo essere vuota oppure contenere la propria password. Non serve una variabile per distinguere gli ambienti. Non versionare il file locale. `bootstrap.php` carica Composer e phpdotenv; `Database::leggiConfigurazione()` valida i valori senza connettersi al database.
 
-**Regole sulle migrazioni:**
-
-1. `001_...sql` viene eseguito **una volta** su ogni DB appena creato. Non rieseguitelo aspettandovi che modifichi tabelle già esistenti.
-2. Quando una storia richiede una colonna o tabella nuova, create **`002_...sql`, `003_...sql` e così via**; non riscrivete `001` dopo che tutti l'hanno applicato.
-3. Una migrazione appartiene alla **PR della User Story che ne ha bisogno**, salvo task tecnici condivisi concordati.
-4. Nella PR specificate **quali migrazioni applicare e in quale ordine**. Se due branch introducono lo stesso numero, rinumerate prima del merge.
-5. Ogni membro tiene un piccolo registro locale delle migrazioni applicate. **Questa procedura iniziale è manuale**: Composer da solo non esegue migrazioni SQL.
-6. Non cancellate tabelle e dati del collega; per i test create `fitslot_test` separato.
-
-**Consiglio evolutivo:** quando gli script diventano numerosi, valutate un runner di migrazioni con tabella `schema_migrations` e transazioni/controlli. Non serve costruirlo subito. Ricordate che in MySQL molte istruzioni DDL (`CREATE/ALTER TABLE`) causano commit impliciti, quindi non assumete che una migrazione sia completamente annullabile con `ROLLBACK`.
-
-<a id="09-pdo"></a>
-## 9. Connessione sicura a MySQL con PDO
-
-File `.env.example` (versionato, senza password vere):
-
-```dotenv
-APP_ENV=local
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_NAME=fitslot_dev
-DB_USER=fitslot_dev
-DB_PASSWORD=INSERISCI_PASSWORD_LOCALE
-```
-
-Ognuno copia `.env.example` in `.env` e mette i **propri** valori. La libreria `phpdotenv` deve essere invocata esplicitamente: il solo file `.env` non viene letto automaticamente da PHP.
-
-File `src/Config/Database.php`:
+In un entry point:
 
 ```php
 <?php
 
-declare(strict_types=1);
+use Ladythelemons\Fitslot\Config\Database;
 
-namespace App\Config;
-
-use PDO;
-
-final class Database
-{
-    public static function connetti(): PDO
-    {
-        $host = $_ENV['DB_HOST'] ?? '127.0.0.1';
-        $port = $_ENV['DB_PORT'] ?? '3306';
-        $name = $_ENV['DB_NAME'] ?? 'fitslot_dev';
-        $user = $_ENV['DB_USER'] ?? '';
-        $password = $_ENV['DB_PASSWORD'] ?? '';
-
-        $dsn = "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
-
-        return new PDO($dsn, $user, $password, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ]);
-    }
-}
+require_once dirname(__DIR__) . '/bootstrap.php';
+$connessione = Database::connetti(); // mysqli, errori strict e charset utf8mb4
 ```
 
-In `public/index.php` si inizializza l'ambiente una sola volta prima di costruire repository e service:
-
-```php
-<?php
-
-declare(strict_types=1);
-
-require dirname(__DIR__) . '/vendor/autoload.php';
-
-Dotenv\Dotenv::createImmutable(dirname(__DIR__))->safeLoad();
-```
-
-Poi il codice può usare `Database::connetti()` e passare l'oggetto `PDO` al repository.
-
-**Regola SQL:** usare `prepare()` e `execute()` per tutti i dati provenienti dall'utente; mai concatenare input nella query. `PDO::prepare()` parametrizza *valori*, non nomi arbitrari di tabelle o colonne; questi ultimi vanno scelti da una lista fissa nel codice. Fonte: [PHP PDO::prepare](https://www.php.net/manual/en/pdo.prepare.php), [OWASP SQL Injection Prevention](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html).
+Il file effettivo e `src/Config/Database.php`. Passare la connessione MySQLi ai repository. Per valori esterni usare `prepare()` con parametri o `execute_query($sql, $params)`; mai concatenare input nelle query. Gli identificatori SQL non sono parametri: usare nomi fissi o una lista consentita. Fonte: [PHP MySQLi prepared statements](https://www.php.net/manual/en/mysqli.quickstart.prepared-statements.php).
 
 <a id="10-ue01"></a>
 ## 10. UE-01: esempio di implementazione a livelli
@@ -440,7 +370,7 @@ Il seguente esempio mostra **il disegno del codice**, non una definizione comple
 
 declare(strict_types=1);
 
-namespace App\DataModel;
+namespace Ladythelemons\Fitslot\DataModel;
 
 final readonly class Utente
 {
@@ -461,9 +391,9 @@ final readonly class Utente
 
 declare(strict_types=1);
 
-namespace App\Repository;
+namespace Ladythelemons\Fitslot\Repository;
 
-use App\DataModel\Utente;
+use Ladythelemons\Fitslot\DataModel\Utente;
 
 interface UtenteRepository
 {
@@ -472,49 +402,40 @@ interface UtenteRepository
 }
 ```
 
-**Perché un'interfaccia?** Il Service può essere testato usando un repository finto senza collegarsi a MySQL; la versione reale usa PDO.
+**Perché un'interfaccia?** Il Service può essere testato usando un repository finto senza collegarsi a MySQL; la versione reale usa MySQLi.
 
-### 10.3 Query — `src/Repository/PdoUtenteRepository.php`
+### 10.3 Query ? `src/Repository/MysqliUtenteRepository.php`
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace App\Repository;
+namespace Ladythelemons\Fitslot\Repository;
 
-use App\DataModel\Utente;
-use PDO;
+use Ladythelemons\Fitslot\DataModel\Utente;
+use mysqli;
 
-final class PdoUtenteRepository implements UtenteRepository
+final class MysqliUtenteRepository implements UtenteRepository
 {
-    public function __construct(private PDO $pdo) {}
+    public function __construct(private mysqli $connessione) {}
 
     public function esisteEmail(string $email): bool
     {
-        $stmt = $this->pdo->prepare(
-            'SELECT 1 FROM utenti WHERE email = :email LIMIT 1'
+        $risultato = $this->db->execute_query(
+            'SELECT 1 FROM utenti WHERE email = ? LIMIT 1', [$email]
         );
-        $stmt->execute(['email' => $email]);
-
-        return $stmt->fetchColumn() !== false;
+        return $risultato->num_rows > 0;
     }
 
     public function salva(Utente $utente): Utente
     {
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO utenti (codice_iscritto, nome, cognome, email)
-             VALUES (:codice, :nome, :cognome, :email)'
+        $this->db->execute_query(
+            'INSERT INTO utenti (codice_iscritto, nome, cognome, email) VALUES (?, ?, ?, ?)',
+            [$utente->codiceIscritto, $utente->nome, $utente->cognome, $utente->email]
         );
-        $stmt->execute([
-            'codice' => $utente->codiceIscritto,
-            'nome' => $utente->nome,
-            'cognome' => $utente->cognome,
-            'email' => $utente->email,
-        ]);
-
         return new Utente(
-            (int) $this->pdo->lastInsertId(),
+            (int) $this->db->insert_id,
             $utente->codiceIscritto,
             $utente->nome,
             $utente->cognome,
@@ -531,16 +452,16 @@ final class PdoUtenteRepository implements UtenteRepository
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace Ladythelemons\Fitslot\Service;
 
-use App\DataModel\Utente;
-use App\Repository\UtenteRepository;
+use Ladythelemons\Fitslot\DataModel\Utente;
+use Ladythelemons\Fitslot\Repository\UtenteRepository;
 use DomainException;
 use InvalidArgumentException;
 
 final class UtenteService
 {
-    public function __construct(private UtenteRepository $repository) {}
+    public function __construct(private UtenteRepository $archivioUtenti) {}
 
     public function registraUtente(
         string $nome,
@@ -592,17 +513,17 @@ File `src/Controller/UtenteController.php`:
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace Ladythelemons\Fitslot\Controller;
 
-use App\Service\UtenteService;
+use Ladythelemons\Fitslot\Service\UtenteService;
 use DomainException;
 use InvalidArgumentException;
 use JsonException;
-use PDOException;
+use mysqli_sql_exception;
 
 final class UtenteController
 {
-    public function __construct(private UtenteService $service) {}
+    public function __construct(private UtenteService $servizio) {}
 
     public function registra(): void
     {
@@ -632,15 +553,15 @@ final class UtenteController
                 'id' => $utente->id,
                 'codiceIscritto' => $utente->codiceIscritto,
             ], JSON_THROW_ON_ERROR);
-        } catch (JsonException | InvalidArgumentException $e) {
+        } catch (JsonException | InvalidArgumentException $errore) {
             http_response_code(422);
-            echo json_encode(['errore' => $e->getMessage()]);
-        } catch (DomainException $e) {
+            echo json_encode(['errore' => $errore->getMessage()]);
+        } catch (DomainException $errore) {
             http_response_code(409);
-            echo json_encode(['errore' => $e->getMessage()]);
-        } catch (PDOException $e) {
-            error_log($e->getMessage());
-            $duplicato = ($e->errorInfo[1] ?? null) === 1062;
+            echo json_encode(['errore' => $errore->getMessage()]);
+        } catch (mysqli_sql_exception $errore) {
+            error_log($errore->getMessage());
+            $duplicato = ($errore->getCode()) === 1062;
             http_response_code($duplicato ? 409 : 500);
             echo json_encode([
                 'errore' => $duplicato ? 'Dato già registrato' : 'Errore interno'
@@ -657,10 +578,10 @@ File `public/index.php` (per **sola demo locale**):
 
 declare(strict_types=1);
 
-use App\Config\Database;
-use App\Controller\UtenteController;
-use App\Repository\PdoUtenteRepository;
-use App\Service\UtenteService;
+use Ladythelemons\Fitslot\Config\Database;
+use Ladythelemons\Fitslot\Controller\UtenteController;
+use Ladythelemons\Fitslot\Repository\MysqliUtenteRepository;
+use Ladythelemons\Fitslot\Service\UtenteService;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 Dotenv\Dotenv::createImmutable(dirname(__DIR__))->safeLoad();
@@ -675,9 +596,9 @@ if ($percorso === '/health' && $metodo === 'GET') {
 }
 
 if ($percorso === '/api/iscritti' && $metodo === 'POST') {
-    $repository = new PdoUtenteRepository(Database::connetti());
-    $service = new UtenteService($repository);
-    (new UtenteController($service))->registra();
+    $archivioUtenti = new MysqliUtenteRepository(Database::connetti());
+    $servizio = new UtenteService($archivioUtenti);
+    (new UtenteController($servizio))->registra();
     exit;
 }
 
@@ -773,9 +694,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\DataModel\Utente;
-use App\Repository\UtenteRepository;
-use App\Service\UtenteService;
+use Ladythelemons\Fitslot\DataModel\Utente;
+use Ladythelemons\Fitslot\Repository\UtenteRepository;
+use Ladythelemons\Fitslot\Service\UtenteService;
 use DomainException;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
@@ -784,35 +705,35 @@ final class UtenteServiceTest extends TestCase
 {
     public function testRifiutaNomeVuoto(): void
     {
-        $repository = $this->createStub(UtenteRepository::class);
-        $service = new UtenteService($repository);
+        $archivioUtenti = $this->createStub(UtenteRepository::class);
+        $servizio = new UtenteService($archivioUtenti);
 
         $this->expectException(InvalidArgumentException::class);
-        $service->registraUtente('', 'Rossi', 'mario@example.com');
+        $servizio->registraUtente('', 'Rossi', 'mario@example.com');
     }
 
     public function testRifiutaEmailDuplicata(): void
     {
-        $repository = $this->createStub(UtenteRepository::class);
-        $repository->method('esisteEmail')->willReturn(true);
-        $service = new UtenteService($repository);
+        $archivioUtenti = $this->createStub(UtenteRepository::class);
+        $archivioUtenti->method('esisteEmail')->willReturn(true);
+        $servizio = new UtenteService($archivioUtenti);
 
         $this->expectException(DomainException::class);
-        $service->registraUtente('Mario', 'Rossi', 'mario@example.com');
+        $servizio->registraUtente('Mario', 'Rossi', 'mario@example.com');
     }
 
     public function testRegistraUtenteValido(): void
     {
-        $repository = $this->createStub(UtenteRepository::class);
-        $repository->method('esisteEmail')->willReturn(false);
-        $repository->method('salva')->willReturnCallback(
+        $archivioUtenti = $this->createStub(UtenteRepository::class);
+        $archivioUtenti->method('esisteEmail')->willReturn(false);
+        $archivioUtenti->method('salva')->willReturnCallback(
             static fn (Utente $u): Utente => new Utente(
                 1, $u->codiceIscritto, $u->nome, $u->cognome, $u->email
             )
         );
-        $service = new UtenteService($repository);
+        $servizio = new UtenteService($archivioUtenti);
 
-        $utente = $service->registraUtente(' Mario ', 'Rossi', 'mario@example.com');
+        $utente = $servizio->registraUtente(' Mario ', 'Rossi', 'mario@example.com');
 
         $this->assertSame(1, $utente->id);
         $this->assertSame('Mario', $utente->nome);
@@ -844,39 +765,39 @@ Per fare TDD potete **prima scrivere un test che fallisce**, poi implementare la
 <a id="13-integrazione"></a>
 ## 13. Test d'integrazione con MySQL
 
-Create un database **separato** da `fitslot_dev`:
+Per i futuri test d'integrazione creare un database **separato** da `fitslot_dev`. Gli import diretti seguenti riguardano soltanto fixture del DB di test; per lo sviluppo usare il runner documentato nel README:
 
 ```bash
 mysql -u root -p -e "CREATE DATABASE fitslot_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p fitslot_test < database/migrations/001_create_utenti_ruoli.sql
-mysql -u root -p fitslot_test < database/seed/001_ruoli.sql
+mysql -u root -p fitslot_test < database/migrations/01-create_utenti.sql
+mysql -u root -p fitslot_test < database/seed/01-ruoli.sql
 ```
 
 ### Come funzionano
 
 - L'unit test di `UtenteService` usa un Repository simulato e **non** richiede MySQL.
-- L'integration test crea **dati fittizi** in `fitslot_test`, chiama `PdoUtenteRepository` e verifica che `INSERT`, `SELECT` e vincoli `UNIQUE` funzionino davvero.
-- Ogni test deve essere **isolato e ripetibile**. Se necessario, aprite una transazione all'inizio del test e fate `rollBack()` alla fine; le istruzioni DDL (`CREATE TABLE`, ecc.) vanno eseguite **prima dei test**, perché in MySQL causano spesso commit impliciti.
+- L'integration test crea **dati fittizi** in `fitslot_test`, chiama `MysqliUtenteRepository` e verifica che `INSERT`, `SELECT` e vincoli `UNIQUE` funzionino davvero.
+- Ogni test deve essere **isolato e ripetibile**. Se necessario, aprite una transazione all'inizio del test e fate `rollback()` alla fine; le istruzioni DDL (`CREATE TABLE`, ecc.) vanno eseguite **prima dei test**, perché in MySQL causano spesso commit impliciti.
 - Ogni membro usa credenziali e DB di test propri; **mai eseguire test distruttivi sul DB di sviluppo condiviso o su un database di produzione**.
 - Per prenotazioni e crediti, negli Sprint successivi, scrivete anche test con **richieste concorrenti**: i test unitari da soli non verificano il problema dell'ultimo posto.
 
-Documentazione: [PHP PDO transactions](https://www.php.net/manual/en/pdo.begintransaction.php), [MySQL InnoDB locking reads](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html).
+Documentazione: [PHP MySQLi transactions](https://www.php.net/manual/en/mysqli.begin-transaction.php), [MySQL InnoDB locking reads](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html).
 
 <a id="14-ci"></a>
 ## 14. GitHub Actions: eseguire i test nelle Pull Request
 
 ### CI minima consigliata: attivatela nel setup iniziale
 
-Create `.github/workflows/tests.yml`:
+Create `.github/workflows/php-tests.yml`:
 
 ```yaml
-name: FitSlot - PHPUnit
+name: FitSlot - PHP Tests
 
 on:
   push:
-    branches: [main]
+    branches: [Main]
   pull_request:
-    branches: [main]
+    branches: [Main]
 
 permissions:
   contents: read
@@ -884,25 +805,26 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Scarica il repository
+      - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Installa PHP e Composer
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, dom, xml, xmlwriter, pdo_mysql
-          coverage: none
+          extensions: mysqli, mbstring, dom, xml, xmlwriter
           tools: composer:v2
+          coverage: none
 
-      - name: Installa le librerie del progetto
-        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
 
-      - name: Controlla configurazione Composer
-        run: composer validate --strict
+      - name: Validate Composer
+        run: composer validate --strict --no-check-publish
 
-      - name: Esegui i test UNITARI
+      - name: Run unit tests
         run: composer test:unit
 ```
 
@@ -937,15 +859,15 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, dom, xml, xmlwriter, pdo_mysql
+          extensions: mbstring, dom, xml, xmlwriter, mysqli
           tools: composer:v2
       - run: composer install --no-interaction --prefer-dist --no-progress
       - name: Importa lo schema di test
         env:
           MYSQL_PWD: fitslot_ci_password
         run: |
-          mysql -h 127.0.0.1 -u fitslot_test fitslot_test < database/migrations/001_create_utenti_ruoli.sql
-          mysql -h 127.0.0.1 -u fitslot_test fitslot_test < database/seed/001_ruoli.sql
+          mysql -h 127.0.0.1 -u fitslot_test fitslot_test < database/migrations/01-create_utenti.sql
+          mysql -h 127.0.0.1 -u fitslot_test fitslot_test < database/seed/01-ruoli.sql
       - name: Test unitari e integrazione
         env:
           DB_HOST: 127.0.0.1
@@ -965,12 +887,12 @@ jobs:
 
 ### Regola centrale del team
 
-**Ogni User Story ha il proprio branch** e la propria Pull Request. Non create un branch per ogni classe e non lavorate tutti direttamente su `main`.
+**Ogni User Story ha il proprio branch** e la propria Pull Request. Non create un branch per ogni classe e non lavorate tutti direttamente su `Main`.
 
 Esempi:
 
 ```text
-main
+Main
 ├── feature/UE-01-registrazione-iscritto
 ├── feature/UE-02-ricerca-iscritto
 ├── feature/UE-03-login
@@ -983,8 +905,8 @@ main
 
 ```bash
 # Prima di iniziare una nuova storia
-git switch main
-git pull origin main
+git switch Main
+git pull origin Main
 git switch -c feature/UE-01-registrazione-iscritto
 
 # Dopo una piccola modifica funzionante
@@ -995,7 +917,7 @@ git commit -m "feat(UE-01): implementa registrazione iscritto"
 git push -u origin feature/UE-01-registrazione-iscritto
 ```
 
-Aprire poi la PR verso `main` su GitHub. Prima del merge:
+Aprire poi la PR verso `Main` su GitHub. Prima del merge:
 
 1. Un compagno legge il codice e controlla i criteri di accettazione.
 2. La CI risulta verde.
@@ -1003,24 +925,24 @@ Aprire poi la PR verso `main` su GitHub. Prima del merge:
 4. Si correggono i commenti della review.
 5. Solo allora si fa il merge e si chiude la Issue.
 
-### Se `main` è cambiato mentre sviluppavi
+### Se `Main` è cambiato mentre sviluppavi
 
 ```bash
 git fetch origin
 git switch feature/UE-01-registrazione-iscritto
-git merge origin/main
+git merge origin/Main
 # risolvi eventuali conflitti, poi riesegui i test
 git push
 ```
 
-Per un team principiante, **`merge origin/main` è più semplice del rebase di un branch già condiviso**. Non usare `git push --force` per sovrascrivere il lavoro dei compagni.
+Per un team principiante, **`merge origin/Main` è più semplice del rebase di un branch già condiviso**. Non usare `git push --force` per sovrascrivere il lavoro dei compagni.
 
 ### Dipendenze fra branch
 
 - **UE-02 dipende dal modello `Utente` e dal Repository** della UE-01.
 - **UE-04 dipende dal login/sessione** della UE-03.
 - Prima di iniziare due storie dipendenti, concordate **nomi delle classi, campi e firme dei metodi**; scriveteli nella Issue.
-- È possibile lavorare in parallelo usando stub/mock, ma **non considerate integrata una storia finché non funziona sulla `main` reale**.
+- È possibile lavorare in parallelo usando stub/mock, ma **non considerate integrata una storia finché non funziona sulla `Main` reale**.
 - Preferite PR piccole. Non mescolate modifiche estranee alla User Story.
 
 <a id="16-pr"></a>
@@ -1098,7 +1020,7 @@ I commit devono descrivere cosa cambia. Inserite **UE-XX** nei nomi dei branch e
 
 **Obiettivo:** ogni compagno riesce a clonare il progetto, eseguire `composer install`, far partire una pagina locale, collegarsi al proprio MySQL ed eseguire almeno un test verde.
 
-**Branch:** `chore/setup-iniziale`. Comprende GitHub, cartelle, Composer, `phpunit.xml` se utile, prima migrazione, connessione PDO, `.env.example`, CI, README. **È un task tecnico di setup, non la UE-01 completata.**
+**Branch:** `chore/setup-iniziale`. Comprende GitHub, cartelle, Composer, `phpunit.xml` se utile, prima migrazione, connessione MySQLi, `.env.example`, CI, README. **È un task tecnico di setup, non la UE-01 completata.**
 
 ### Storie candidate
 
@@ -1117,7 +1039,7 @@ I commit devono descrivere cosa cambia. Inserite **UE-XX** nei nomi dei branch e
 
 - **Riunione tecnica comune:** progettate schema `utenti`, interfaccia di `UtenteRepository` e convenzioni.
 - **Sviluppatore UE-01:** implementa il percorso completo di registrazione nel suo branch.
-- **Sviluppatore UE-02:** prepara la ricerca sul contratto condiviso; poi integra sulla `main` con UE-01.
+- **Sviluppatore UE-02:** prepara la ricerca sul contratto condiviso; poi integra sulla `Main` con UE-01.
 - **Altri compagni:** possono iniziare UE-03 e i relativi test *solo dopo aver definito le credenziali*, oppure aiutare con CI, test, review e integrazione. Non devono aprire obbligatoriamente una User Story nuova se il carico è già eccessivo.
 - **Tutti:** hanno responsabilità condivisa su qualità, review e demo. Nessuna storia è “proprietà esclusiva” di chi la sviluppa.
 
@@ -1127,7 +1049,7 @@ I commit devono descrivere cosa cambia. Inserite **UE-XX** nei nomi dei branch e
 |---|---|
 | **Setup** | Repository, Composer, PHPUnit, pagina di prova, DB e primo test |
 | **Sviluppo principale** | UE-01 con dati salvati e test; UE-02 in parallelo con contratto condiviso |
-| **Integrazione** | Merge PR, migrazioni applicate da tutti, test e demo sul branch `main` |
+| **Integrazione** | Merge PR, migrazioni applicate da tutti, test e demo sul branch `Main` |
 | **Chiusura Sprint** | Sprint Backlog aggiornato, presentazione, codice avviabile e release/tag |
 
 Non riempite lo Sprint per raggiungere un totale arbitrario di Story Point. Dovete poter mostrare **funzionalità integrate**, non quattro mezze funzioni sviluppate su branch separati.
@@ -1164,7 +1086,7 @@ FitSlot gestisce **dati personali e certificati medici**: anche per un progetto 
 ### Regole obbligatorie per il codice
 
 1. **Password:** `password_hash()` per generare l'hash, `password_verify()` per il login; **mai** password in chiaro. Dimensione colonna `VARCHAR(255)` per gli hash.
-2. **SQL injection:** solo query PDO preparate e parametrizzate per valori esterni, mai `"... WHERE email = '$email'"`.
+2. **SQL injection:** solo query MySQLi preparate e parametrizzate per valori esterni, mai `"... WHERE email = '$email'"`.
 3. **XSS:** mai stampare input utente non codificato in HTML; usare `htmlspecialchars($valore, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')` nell'output HTML e `textContent` nel browser.
 4. **Sessioni:** dopo login valido rigenerare l'identificativo di sessione in modo sicuro; cookie `HttpOnly`, `SameSite`, `Secure` in HTTPS, timeout e logout corretti.
 5. **Autorizzazione:** controlli lato server su *ogni endpoint*; nascondere un pulsante non è protezione.
@@ -1211,7 +1133,7 @@ Una User Story è **Done** soltanto quando:
 - [ ] I controlli di permesso e input sono eseguiti lato PHP.
 - [ ] Non sono stati committati segreti o dati reali.
 - [ ] Un compagno diverso dall'autore ha esaminato la Pull Request.
-- [ ] La PR è stata integrata in `main` senza conflitti; la funzione parte sull'ultima `main`.
+- [ ] La PR è stata integrata in `Main` senza conflitti; la funzione parte sull'ultima `Main`.
 - [ ] Il gruppo riesce a mostrarla in una demo ripetibile.
 
 **Non Done:** “funziona sul mio PC” ma non su quello degli altri; codice presente soltanto in un branch; test rossi; requisito parzialmente implementato senza concordarne lo spezzamento.
@@ -1223,15 +1145,15 @@ Alla fine dello Sprint:
 
 1. Aggiornate lo Sprint Backlog con **Done / non Done** secondo la Definition of Done.
 2. Fate merge delle **sole** PR completate e verificate.
-3. Clonate o aggiornate `main` su un altro PC e ripetete `composer install`, migrazioni, avvio e test.
+3. Clonate o aggiornate `Main` su un altro PC e ripetete `composer install`, migrazioni, avvio e test.
 4. Preparate una **demo breve** con dati fittizi; non affidatevi a database locali già popolati da settimane.
 5. Create un **tag/release GitHub** per congelare il codice mostrato alla review, ad esempio `sprint-1`.
 6. Nelle note della release indicate le UE completate, istruzioni di avvio, migrazioni e limiti noti.
 7. Consegnate gli artefatti richiesti per lo Sprint: Sprint Backlog, codice e presentazione, secondo le istruzioni ufficiali del corso.
 
 ```bash
-git switch main
-git pull origin main
+git switch Main
+git pull origin Main
 composer install
 composer test
 git tag -a sprint-1 -m "FitSlot Sprint 1"
@@ -1247,15 +1169,15 @@ git push origin sprint-1
 |---|---|---|
 | `composer: command not found` | Composer non nel PATH | Installazione e terminale riavviato |
 | PHP troppo vecchio per PHPUnit | PHP CLI non è 8.4+ | `php -v`; uniformare versione |
-| `could not find driver` | Manca `pdo_mysql` | `php -m`, `php.ini` usato dalla CLI |
-| `Class App\... not found` | Namespace/file PSR-4 errato | Maiuscole e `composer dump-autoload` |
+| `Class "mysqli" not found` | Manca `mysqli` | `php -m`, `php.ini` usato dalla CLI |
+| `Class Ladythelemons\Fitslot\... not found` | Namespace/file PSR-4 errato | Maiuscole e `composer dump-autoload` |
 | Accesso negato a MySQL | DB_USER/DB_PASSWORD errati | `.env`, permessi dell'utente DB |
 | Tabella non trovata | Migrazione non applicata | Nome DB e lista migrazioni eseguite |
 | Duplicate entry su email/codice | Violato vincolo UNIQUE | Messaggio `409`, test caso duplicato |
 | `vendor/bin/phpunit` mancante | Dipendenze non installate | `composer install` |
-| GitHub Actions fallisce ma in locale no | Versioni/estensioni o DB diversi | Log CI, PHP 8.4, `pdo_mysql`, migrazioni |
+| GitHub Actions fallisce ma in locale no | Versioni/estensioni o DB diversi | Log CI, PHP 8.4, `mysqli`, migrazioni |
 | Conflitti su file SQL | Due branch modificano stessa migrazione | Nuovo file SQL, rinumerazione in PR |
-| I compagni non vedono la novità | Branch non integrato o browser cache | Controllare `main`, pull e console |
+| I compagni non vedono la novità | Branch non integrato o browser cache | Controllare `Main`, pull e console |
 | PR troppo grande | Più storie mischiate | Separare le modifiche per User Story |
 
 **Regola di diagnosi:** non correggete a caso. Riproducete l'errore, leggete i messaggi, isolate il livello (browser, Controller, Service, Repository o DB), aggiungete un test di regressione se è un bug reale.
@@ -1275,16 +1197,16 @@ git push origin sprint-1
 - [ ] Branch `chore/setup-iniziale`.
 - [ ] Struttura delle cartelle e `.gitignore`.
 - [ ] `composer.json`, `composer.lock`, autoload PSR-4, `composer test`.
-- [ ] `.env.example`, connessione PDO e DB locale.
-- [ ] `001_create_utenti_ruoli.sql` e seed ruoli.
+- [ ] `.env.example`, connessione MySQLi e DB locale.
+- [ ] `01-create_utenti.sql` e seed ruoli.
 - [ ] Primo test PHPUnit verde su tutti e quattro i computer.
-- [ ] GitHub Actions attiva e PR iniziale integrata in `main`.
+- [ ] GitHub Actions attiva e PR iniziale integrata in `Main`.
 
 ### Fase C — Prima User Story
 
 - [ ] Issue UE-01 con criteri veri del Product Backlog.
 - [ ] Branch `feature/UE-01-registrazione-iscritto`.
-- [ ] `Utente`, interfaccia `UtenteRepository`, `PdoUtenteRepository`, `UtenteService`, Controller.
+- [ ] `Utente`, interfaccia `UtenteRepository`, `MysqliUtenteRepository`, `UtenteService`, Controller.
 - [ ] Form HTML, input verificati, dati persistenti in MySQL.
 - [ ] Test positivi, negativi e di integrazione con DB di test.
 - [ ] PR revisionata e integrata.
@@ -1294,7 +1216,7 @@ git push origin sprint-1
 - [ ] Stime Planning Poker condivise e capacità ragionata.
 - [ ] UE-02 e poi eventuali UE-03/UE-04 secondo dipendenze e tempo.
 - [ ] Nessuna storia lasciata parzialmente implementata ma marcata Done.
-- [ ] Demo sul codice `main` e release/tag Sprint 1.
+- [ ] Demo sul codice `Main` e release/tag Sprint 1.
 
 <a id="24-fonti"></a>
 ## 24. Fonti ufficiali consultate online
@@ -1305,8 +1227,8 @@ Consultazione effettuata il **4 novembre 2026**. I riferimenti esterni documenta
 2. **Composer — Scripts (`composer test`, `@php`):** <https://getcomposer.org/doc/articles/scripts.md>
 3. **PHPUnit — Getting started, installazione Composer:** <https://phpunit.de/getting-started.html>
 4. **PHPUnit — Compatibilità versioni PHP:** <https://phpunit.de/supported-versions.html>
-5. **PHP — PDO::prepare e parametri:** <https://www.php.net/manual/en/pdo.prepare.php>
-6. **PHP — Transazioni PDO:** <https://www.php.net/manual/en/pdo.begintransaction.php>
+5. **PHP — MySQLi::prepare e parametri:** <https://www.php.net/manual/en/mysqli.prepare.php>
+6. **PHP — Transazioni MySQLi:** <https://www.php.net/manual/en/mysqli.begin-transaction.php>
 7. **PHP — Server di sviluppo integrato:** <https://www.php.net/manual/en/features.commandline.webserver.php>
 8. **PHP — Password hashing e verifica:** <https://www.php.net/manual/en/function.password-hash.php>, <https://www.php.net/manual/en/function.password-verify.php>
 9. **PHP — Session regeneration:** <https://www.php.net/manual/en/function.session-regenerate-id.php>
@@ -1332,8 +1254,8 @@ Prima di trattare questa guida come definitiva, registrate l'esito di questi pun
 | Database | MySQL 8.4 LTS, InnoDB, uno locale per membro | Da approvare |
 | Gestione librerie | Composer e `composer.lock` versionato | Da approvare |
 | Sicurezza iniziale | Demo solo locale con dati fittizi fino a login/ruoli | Da approvare |
-| Repository | Un repo privato, `main` stabile, una PR per User Story | Da approvare |
-| Migrazioni | SQL numerato, inizialmente applicato manualmente | Da approvare |
+| Repository | Un repo privato, `Main` stabile, una PR per User Story | Da approvare |
+| Migrazioni | SQL numerato, runner con lock e checksum | Da approvare |
 | Sprint 1 | UE-01/UE-02; UE-03/UE-04 solo se sostenibili | Dipende da Planning Poker e capacità |
 
-**Decisione finale da verbalizzare:** “Adottiamo PHP + MySQL + PDO + Composer + PHPUnit, con struttura DataModel/Repository/Service/Controller, test automatici e un branch GitHub per ogni User Story. Lo sviluppo del primo Sprint parte da una configurazione comune, poi dalle storie selezionate e realmente completabili.”
+**Decisione finale da verbalizzare:** “Adottiamo PHP + MySQL + MySQLi + Composer + PHPUnit, con struttura DataModel/Repository/Service/Controller, test automatici e un branch GitHub per ogni User Story. Lo sviluppo del primo Sprint parte da una configurazione comune, poi dalle storie selezionate e realmente completabili.”
