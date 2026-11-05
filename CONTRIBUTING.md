@@ -5,7 +5,7 @@
 - Prima di iniziare, assegnarsi la relativa issue.
 - Una modifica significativa deve passare da una pull request.
 - Una pull request deve avere almeno una revisione di un altro membro.
-- Evitare di lavorare direttamente su `main`.
+- Evitare di lavorare direttamente su `Main`.
 - Mantenere commit piccoli e descrittivi.
 - Aggiornare la documentazione e la issue insieme al codice quando necessario.
 
