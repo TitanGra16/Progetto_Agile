@@ -59,7 +59,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES
     ON fitslot_dev.* TO 'fitslot_local'@'127.0.0.1';
 ```
 
-Sono nomi di esempio coerenti con .env.example: adattarli al database scelto. Usare DB_HOST=127.0.0.1 per l'account dell'esempio. Se l'account esiste gia, verificarlo e gestirlo con l'amministratore invece di ricrearlo. I privilegi sono limitati a questo database e comprendono i DDL necessari al setup locale e all'estensione del registro; nessun privilegio globale o DROP e richiesto dagli SQL attuali. Per un ambiente distribuito separare utenza di migration e utenza applicativa: quest'ultima necessita normalmente soltanto di SELECT, INSERT, UPDATE e DELETE. Eventuali future migration possono richiedere una revisione esplicita dei permessi.
+Sono nomi di esempio coerenti con .env.example: adattarli al database scelto. Usare DB_HOST=127.0.0.1 per l'account dell'esempio. Se l'account esiste gia, verificarlo e gestirlo con l'amministratore invece di ricrearlo. I privilegi sono limitati a questo database e comprendono i DDL necessari al setup locale e ai futuri file SQL; nessun privilegio globale o DROP e richiesto dagli SQL attuali. Per un ambiente distribuito separare utenza di migration e utenza applicativa: quest'ultima necessita normalmente soltanto di SELECT, INSERT, UPDATE e DELETE. Eventuali future migration possono richiedere una revisione esplicita dei permessi.
 
 ## Setup esplicito del database
 
@@ -69,36 +69,19 @@ composer db:setup
 
 Questo e un comando che modifica il database configurato: eseguirlo consapevolmente, dopo verifica della configurazione e backup dei dati importanti. Non viene eseguito da installazione, avvio del server o test unitari.
 
-Il runner acquisisce un lock MySQL esclusivo per database, senza attesa: un secondo setup si ferma. Il lock copre anche preparazione del registro e DDL ed e rilasciato chiudendo la connessione, anche in caso di errore. Protegge i processi che usano questo runner sullo stesso server; non blocca importazioni manuali o vecchie copie dello script.
+Lo script legge la configurazione condivisa con l'applicazione, crea il database solo se manca ed esegue tutti gli eventuali file SQL: prima quelli in `database/migrations/`, poi quelli in `database/seed/`, ordinati per nome.
 
-Vengono applicati prima i file di database/migrations, poi quelli di database/seed, ordinati per nome. I file iniziali sono:
+**Nel setup attuale non sono presenti SQL delle User Story.** Se le cartelle non esistono o non contengono SQL, viene preparato soltanto il database e il conteggio dei file eseguiti e zero. Le tabelle applicative saranno aggiunte con le rispettive User Story; il comando non le inventa e non le ricrea.
 
-- `database/migrations/01-create_utenti.sql`;
-- `database/seed/01-ruoli.sql`.
+Non viene mantenuto uno storico: tutti i file presenti vengono rieseguiti a ogni `composer db:setup`. Non eseguire due setup contemporaneamente. Prima di aggiungere un SQL, verificare con il gruppo che sia ripetibile: ad esempio, `CREATE TABLE IF NOT EXISTS` evita di ricreare una tabella e un seed deve evitare inserimenti duplicati.
 
-Il registro `schema_migrations` conserva filename e applied_at e viene esteso, senza ricrearlo, con checksum SHA-256 e state. I checksum normalizzano LF/CRLF per rendere coerenti Windows e Linux. I file gia applicati vengono verificati prima di eseguire quelli pendenti: modifiche, rimozioni o rinominazioni bloccano il setup. Aggiungere nuove migration per le modifiche allo schema; non riscrivere quelle gia condivise.
+Modificare un `CREATE TABLE IF NOT EXISTS` non aggiorna una tabella esistente. Eventuali futuri `ALTER TABLE` possono fallire alla seconda esecuzione: concordare una procedura specifica con il gruppo prima di inserirli fra gli SQL rieseguiti automaticamente.
 
-### Compatibilita con il registro precedente
+### Errori SQL
 
-Le righe preesistenti senza checksum non vengono considerate verificate automaticamente. Il setup si ferma dopo aver esteso il registro. Prima della baseline:
+Un errore interrompe il comando con codice 1 e indica l'operazione in corso. I messaggi non mostrano credenziali o contenuto delle query. I DDL MySQL possono lasciare modifiche parziali: non ritentare alla cieca dopo un errore e non presumere un rollback automatico. Verificare lo schema prima di proseguire.
 
-1. Confrontare gli SQL con la revisione usata per il setup originario e verificare schema, vincoli e ruoli effettivi con il team.
-2. Fare un backup e chiarire eventuali differenze senza cancellare o ricreare tabelle.
-3. Solo dopo la verifica, eseguire esplicitamente:
-
-```powershell
-composer db:setup -- --registra-impronte
-```
-
-La baseline aggiorna soltanto i checksum mancanti nel registro (e, se necessario, ne prepara la struttura); non esegue migration o seed, nemmeno quelli pendenti. Non puo provare retroattivamente quale SQL sia stato eseguito. Dopo la baseline, un successivo `composer db:setup` verifica i file e applica gli eventuali pendenti.
-
-### Errori e recupero manuale
-
-Prima dell'esecuzione SQL viene registrato state=running; soltanto dopo tutti i risultati senza errori o warning lo stato passa ad applied. Errori SQL anche nelle istruzioni successive di un file, warning e checksum discordanti interrompono il comando con codice 1. Non vengono mostrati messaggi SQL contenenti dati o dettagli di connessione. Un file rimasto running blocca anche il successivo avvio del setup.
-
-**Non ritentare alla cieca.** CREATE/ALTER TABLE e altri DDL MySQL causano commit impliciti: un file con piu istruzioni puo lasciare modifiche parziali. Anche DML gia eseguiti possono essere persistiti. Un crash dopo l'SQL ma prima dell'aggiornamento del registro lascia prudenzialmente running. Non cancellare la riga e non impostarla applied senza verificare il risultato. Controllare schema, registro e backup con il team e concordare una riparazione specifica; lo script non effettua rollback o recuperi automatici. Lo stesso controllo vale per vecchi errori avvenuti prima dell'introduzione di state.
-
-Riferimenti: [lock MySQL](https://dev.mysql.com/doc/refman/8.4/en/locking-functions.html), [commit impliciti dei DDL](https://dev.mysql.com/doc/refman/8.4/en/implicit-commit.html).
+L'eventuale vecchia tabella `schema_migrations` non viene consultata, aggiornata o eliminata. Le precedenti opzioni per registrare le impronte non sono piu disponibili: usare soltanto `composer db:setup`, senza opzioni.
 
 ## Avvio e test
 
@@ -127,6 +110,6 @@ Prima della PR verificare i comandi sopra, git status e il diff da proporre. La 
 
 ### Convenzioni di leggibilita
 
-Usiamo nomi italiani per variabili, metodi e messaggi scritti dal gruppo, per esempio `leggiConfigurazione()`, `connetti()` e `$connessione`. Manteniamo i nomi richiesti da PHP, PHPUnit e MySQLi e quelli del registro SQL gia condiviso. `checksum` indica l'impronta del file; `state` distingue un file completato (`applied`) da uno iniziato ma non completato (`running`). I test sono casi separati e non richiedono MySQL.
+Usiamo nomi italiani per variabili, metodi e messaggi scritti dal gruppo, per esempio `leggiConfigurazione()`, `connetti()` e `$connessione`. Manteniamo i nomi richiesti da PHP, PHPUnit e MySQLi. I test sono casi separati e non richiedono MySQL.
 
-L'opzione italiana `--registra-impronte` sostituisce il nome mostrato in precedenza; `--baseline-existing` resta accettata come alias per compatibilita.
+Il setup resta un comando esplicito, separato dall'avvio del sito.

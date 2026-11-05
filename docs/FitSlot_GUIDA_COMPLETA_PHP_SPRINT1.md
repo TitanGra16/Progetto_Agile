@@ -328,17 +328,15 @@ VALUES
 **Vincoli utili:** `NOT NULL` per i dati obbligatori, `UNIQUE` su codice ed email, `FOREIGN KEY` per evitare associazioni incoerenti. Le tabelle di corsi, abbonamenti e prenotazioni arriveranno con le rispettive User Story, non tutte nello Sprint 1.
 
 <a id="08-migrazioni"></a>
-## 8. Migrazioni SQL e sincronizzazione dei database
+## 8. SQL di setup e sincronizzazione dei database
 
-Ogni membro usa un database locale e gli stessi SQL versionati. Il comando esplicito `composer db:setup` applica prima le migration, poi i seed, ordinati per nome nelle rispettive cartelle. I file iniziali sono `database/migrations/01-create_utenti.sql` e `database/seed/01-ruoli.sql`. `composer start` avvia soltanto il server.
+Ogni membro usa il proprio database locale. `composer db:setup` crea il database se manca ed esegue tutti gli eventuali SQL di `database/migrations/`, poi quelli di `database/seed/`, ordinati per nome. Non mantiene uno storico. `composer start` avvia soltanto il server PHP.
 
-Per creare un'utenza locale dedicata e configurare i permessi, seguire il [README](../README.md). Non usare l'account amministrativo nell'applicazione e non importare manualmente SQL sul DB di sviluppo aggirando il registro.
+Nel setup attuale gli SQL delle User Story sono stati rimossi. Gli esempi applicativi di questa guida sono materiale per gli Sprint successivi, non file gia presenti nel setup. Se non trova SQL, il runner prepara soltanto il database.
 
-Il runner usa `schema_migrations`, un lock MySQL per database, checksum SHA-256 con terminatori di riga normalizzati e uno stato di esecuzione. Mantiene compatibili i nomi gia registrati ed estende il registro esistente senza ricrearlo. Non modificare o rinominare SQL gia applicati: aggiungere una nuova migration con nome univoco e ordine concordato nella PR. Non cancellare tabelle o dati dei colleghi.
+Prima di aggiungere file da eseguire a ogni avvio del setup, verificarne la ripetibilita. `CREATE TABLE IF NOT EXISTS` non ricrea le tabelle, ma non aggiorna quelle esistenti. I seed devono evitare duplicati. Eventuali futuri `ALTER TABLE` richiedono una procedura concordata: non inserirli fra i file ripetuti senza verificarli.
 
-Per registri precedenti senza checksum serve una verifica manuale di schema e SQL prima della baseline esplicita `composer db:setup -- --registra-impronte`. Il comando registra i checksum mancanti senza eseguire migration o seed; non dimostra quale contenuto sia stato eseguito in passato.
-
-Un errore SQL, un warning o uno stato incompleto interrompono il setup. I DDL MySQL possono produrre commit impliciti e modifiche parziali: non ritentare alla cieca e non rimuovere righe del registro per forzare una riesecuzione. Concordare il recupero con il team dopo aver verificato schema, registro e backup. Dettagli operativi nel [README](../README.md).
+Non eseguire due setup contemporaneamente. Gli errori SQL interrompono il comando, ma i DDL MySQL possono lasciare modifiche parziali: controllare lo schema prima di riprovare. L'eventuale vecchia tabella `schema_migrations` non viene usata o modificata e non ci sono opzioni per registrare impronte. Dettagli nel [README](../README.md).
 
 <a id="09-mysqli"></a>
 ## 9. Connessione sicura a MySQL con MySQLi
@@ -1255,7 +1253,7 @@ Prima di trattare questa guida come definitiva, registrate l'esito di questi pun
 | Gestione librerie | Composer e `composer.lock` versionato | Da approvare |
 | Sicurezza iniziale | Demo solo locale con dati fittizi fino a login/ruoli | Da approvare |
 | Repository | Un repo privato, `Main` stabile, una PR per User Story | Da approvare |
-| Migrazioni | SQL numerato, runner con lock e checksum | Da approvare |
+| Migrazioni | SQL di setup ripetibili, eseguiti senza storico | Da approvare |
 | Sprint 1 | UE-01/UE-02; UE-03/UE-04 solo se sostenibili | Dipende da Planning Poker e capacità |
 
 **Decisione finale da verbalizzare:** “Adottiamo PHP + MySQL + MySQLi + Composer + PHPUnit, con struttura DataModel/Repository/Service/Controller, test automatici e un branch GitHub per ogni User Story. Lo sviluppo del primo Sprint parte da una configurazione comune, poi dalle storie selezionate e realmente completabili.”

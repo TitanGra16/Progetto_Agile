@@ -210,7 +210,7 @@ composer start
 
 Aprire **http://127.0.0.1:8000** nel browser. Per interrompere il server, tornare nel terminale e premere `Ctrl + C`.
 
-**Importante:** `composer start` non deve eseguire automaticamente le migration. Se `composer db:setup` segnala un registro storico incompleto, seguire la procedura di recupero documentata nel README corrente e nel §5.4, anziché cancellare tabelle.
+**Importante:** `composer start` avvia soltanto PHP e non esegue SQL. MySQL va avviato separatamente in Laragon. Il comando `composer db:setup` riesegue tutti i file SQL presenti: controllarli prima di usarlo su un database gia popolato.
 
 ## 5. Database locale, senza password e migration
 
@@ -240,53 +240,38 @@ La stessa validazione e usata da `Database::connetti()` e da `scripts/db-setup.p
 - I **dati che un compagno inserisce nel proprio MySQL** non si sincronizzano con `git push` e `git pull`.
 - Avviare e arrestare Laragon **non deve cancellare il database**: MySQL salva i dati su disco.
 
-### 5.3 Come funziona `composer db:setup`
+### 5.3 Cosa fa composer db:setup
 
-Lo script `scripts/db-setup.php` deve:
+1. Legge la stessa configurazione usata da `Database::connetti()`.
+2. Si collega a MySQL e crea il database soltanto se manca.
+3. Esegue tutti gli eventuali SQL di `database/migrations/`, poi quelli di `database/seed/`, ordinati per nome.
+4. Si ferma se incontra un errore, indicando l'operazione in corso senza stampare credenziali.
 
-1. Leggere la configurazione locale da `.env`.
-2. Creare il database `fitslot_dev`, se non esiste.
-3. Consultare `schema_migrations`, il registro delle migration eseguite.
-4. Applicare nell'ordine i nuovi file SQL di `database/migrations/` e i seed previsti.
-5. Saltare i file già correttamente applicati.
-6. Proteggersi da esecuzioni concorrenti, controllare l'integrità tramite impronte/checksum e interrompersi in caso di errore.
+Il setup attuale non contiene SQL delle User Story. Se non trova file, prepara il database e stampa zero file eseguiti. Le tabelle applicative arriveranno con le rispettive User Story.
 
-Esempio: se un compagno aggiunge una migration nel proprio branch e la PR viene integrata in `Main`, dopo il `git pull` ciascuno esegue **`composer db:setup`** per aggiornare **il proprio MySQL**.
+Non esiste uno storico delle esecuzioni. L'eventuale tabella `schema_migrations` gia presente resta intatta ma non viene usata. Non servono impronte o opzioni aggiuntive: usare soltanto `composer db:setup`.
 
-Le tabelle verificate nello setup iniziale sono: `utenti`, `ruoli`, `utenti_ruoli`, `schema_migrations`; i ruoli seed iniziali sono quattro. **Non è lo schema finale del progetto.**
+### 5.4 Regole per i file SQL
 
-### 5.4 Regole rigorose per le migration
+- Tutti i file presenti vengono rieseguiti a ogni setup: verificarne la ripetibilita con il gruppo.
+- `CREATE TABLE IF NOT EXISTS` crea una tabella mancante ma non aggiorna una tabella gia esistente.
+- I seed devono evitare inserimenti duplicati; eventuali vincoli univoci vanno rispettati.
+- Un futuro `ALTER TABLE` puo fallire alla seconda esecuzione: concordare come applicarlo senza inserirlo alla cieca fra i file ripetuti.
+- Non lanciare due setup contemporaneamente e non cancellare tabelle per far sparire un errore.
+- Un file con piu istruzioni puo essere applicato solo in parte: MySQL puo confermare i DDL anche se un'istruzione successiva fallisce. Controllare lo schema prima di riprovare.
+- Dopo un `git pull`, leggere le istruzioni dell'autore degli SQL. Git aggiorna i file del progetto, non il database personale.
 
-- **Mai modificare o rinominare un file SQL già applicato** in un database condiviso tra versioni del team.
-- Se serve una modifica, creare **un nuovo file migration** con nome univoco e ordinabile (per esempio `20261105_143000_aggiunge_colonna_x.sql`; usare un nome descrittivo, senza implementare qui la User Story).
-- Le modifiche strutturali SQL possono essere confermate parzialmente da MySQL anche quando una migration fallisce: **non presumere un rollback automatico**.
-- Lo script di setup deve fermarsi su errore. Non rilanciarlo a ripetizione né cancellare tabelle per tentativi.
-- Se si trova un registro storico `schema_migrations` senza colonne `checksum` e `state`, **seguire la procedura `--registra-impronte` documentata nel README del progetto**, dopo aver verificato che gli SQL storici corrispondano realmente al database. **Non eseguire automaticamente questa operazione su database sconosciuti.**
-- Prima di cambiamenti distruttivi, fare una copia locale di sicurezza del database di sviluppo.
+### 5.5 Controlli manuali in sola lettura
 
-### 5.5 Verificare le tabelle (facoltativo)
-
-Da terminale Laragon, per l'utente `root` **senza password**:
-
-```powershell
-mysql -h 127.0.0.1 -u root
-```
-
-Se il proprio account ha una password, usare `mysql -u nomeutente -p` e inserirla al prompt.
-
-Poi in MySQL:
+Aprire il client MySQL dal terminale Laragon. Usare il proprio account; aggiungere `-p` se ha una password e inserirla al prompt.
 
 ```sql
 SHOW DATABASES;
 USE fitslot_dev;
 SHOW TABLES;
-SELECT filename, applied_at FROM schema_migrations;
-SELECT COUNT(*) FROM ruoli;
 ```
 
-La query sulla tabella `schema_migrations` presume che `filename` e `applied_at` siano presenti; verificare `DESCRIBE schema_migrations;` se il runner ha aggiornato il formato del registro.
-
-**Il comando `mysql` in VS Code non è indispensabile:** `composer db:setup` usa PHP e MySQLi. Si può usare il Terminale di Laragon per il client MySQL.
+Adattare il nome del database al proprio .env. Su un ambiente nuovo senza SQL applicativi e normale non trovare ancora tabelle. Il client MySQL non e richiesto dal runner: `composer db:setup` usa PHP e MySQLi.
 
 ### 5.6 Se serve `mysql` nel terminale VS Code
 
@@ -321,7 +306,7 @@ git status
 
 4. Se si sta per **iniziare una nuova User Story**, seguire §8.2 per partire da `Main` aggiornato.
 5. Se si sta **continuando un branch già attivo**, non cambiare su `Main` indiscriminatamente: aggiornare il proprio branch quando necessario come al §8.5.
-6. Se da `Main` sono arrivate nuove migration, prima di lavorare applicarle **consapevolmente**:
+6. Se da `Main` sono arrivati nuovi SQL, concordare con l'autore quando applicarli. `composer db:setup` riesegue anche quelli precedenti; usarlo solo dopo aver controllato che i file presenti siano ripetibili:
 
 ```powershell
 composer install
@@ -671,7 +656,7 @@ I **ruoli applicativi** (iscritto, reception, istruttore, responsabile) non coin
 | `XML declaration allowed only at the start` | Spazi/BOM prima di `<?xml` | Salvare `phpunit.xml` UTF-8 senza BOM, con `<?xml` come primi caratteri |
 | `composer db:setup` dice che manca `.env` | Non creato il file locale | `Copy-Item .env.example .env` e configurarlo |
 | Password vuota rifiutata | Chiave DB_PASSWORD assente o valore non testuale | Inserire DB_PASSWORD= nel proprio .env e verificare che l'account MySQL locale accetti la password configurata |
-| Database collegato ma tabella mancante | Migration non applicata sul DB locale | Verificare registro e file SQL, poi eseguire consapevolmente `composer db:setup` |
+| Database collegato ma tabella mancante | Migration non applicata sul DB locale | Controllare quali SQL sono effettivamente presenti; il setup iniziale non contiene ancora tabelle delle User Story |
 | Nuova tabella del compagno non appare | `git pull` non copia il database | Scaricare la migration con Git e applicarla sul proprio MySQL |
 | `git switch Main` non funziona | Branch `Main` locale non ancora creato o nome diverso | `git branch -a`; verificare `origin/Main` e creare il tracking branch se necessario |
 | `git pull` dà conflitti | Modifiche locali o rami divergenti | Non cancellare nulla; salvare lavoro e risolvere con il compagno coinvolto |
@@ -709,7 +694,7 @@ I **ruoli applicativi** (iscritto, reception, istruttore, responsabile) non coin
 Alla data di stesura del documento, la revisione statica di Codex ha mostrato un setup molto vicino al completamento. **Non trasformare questi punti aperti in affermazioni già verificate:**
 
 1. **Password vuota:** supportata insieme alle password valorizzate, senza variabili aggiuntive per gli ambienti. Ogni compagno configura il proprio MySQL locale. La connessione effettiva e il runner restano da provare nel proprio ambiente; i test unitari controllano la validazione senza usare MySQL.
-2. **Registro migration storico:** nel DB dell'autore del setup manca la compilazione di `checksum` e `state` per le migration già applicate. Seguire la procedura **`--registra-impronte`** descritta nel README esistente, dopo verifica dello schema. Non indovinare né automatizzare il comando.
+2. **Setup senza storico:** `composer db:setup` esegue tutti gli SQL presenti, senza registro, impronte o blocchi fra processi. L'eventuale vecchia tabella schema_migrations resta intatta e inutilizzata. Prima di nuovi SQL verificare la ripetibilita con il team.
 3. **Workflow:** controllare se entrambi i file `.github/workflows/php-tests.yml` e `.github/workflows/php-test.yml` siano davvero necessari. Rimuovere il workflow obsoleto solo dopo revisione.
 4. **Test reale della CI:** il file YAML era stato analizzato staticamente, ma **l'esecuzione effettiva su GitHub** andrà verificata sulla PR del setup.
 5. **Prova del runner su ambiente pulito:** oltre ai test unitari, verificare quando possibile `composer db:setup` su un nuovo database di sviluppo, senza usare il database con dati importanti.
