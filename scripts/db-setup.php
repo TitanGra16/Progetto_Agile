@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+/**
+ * Ricrea il database fitslot ed esegue migration e seed locali.
+ */
 use Ladythelemons\Fitslot\Config\Database;
 
 if ($argc > 1) {
