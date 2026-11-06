@@ -94,4 +94,42 @@ class UtenteRepository
 
         return $risultato->num_rows > 0;
     }
+
+    public function cerca(string $termine): array
+    {
+        // Rimuove eventuali spazi bianchi all'inizio e alla fine del termine di ricerca
+        $termine = trim($termine);
+        $termineRicerca ='%' . $termine . '%';
+        $codice = 0;
+        if (ctype_digit($termine)) {
+            $codice = (int) $termine;
+        }
+
+        $query = $this->connessione->prepare(
+            'SELECT id, nome, cognome, data_nascita, recapito, email
+             FROM utenti
+             WHERE nome LIKE ?
+                OR cognome LIKE ?
+                OR id = ?
+            ORDER BY cognome, nome, id'
+        );
+        $query->bind_param('ssi', $termineRicerca, $termineRicerca, $codice);
+        $query->execute();
+        $query->bind_result($id, $nome, $cognome, $dataNascita, $recapito, $email);
+
+        $utenti = [];
+        while ($query->fetch()) {
+            $utenti[] = new Utente(
+                (int) $id,
+                $nome,
+                $cognome,
+                $dataNascita,
+                $recapito,
+                $email
+            );
+        }
+        $query->close();
+
+        return $utenti;
+    }
 }
