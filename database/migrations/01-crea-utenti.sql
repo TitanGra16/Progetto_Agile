@@ -1,0 +1,10 @@
+CREATE TABLE utenti (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cognome VARCHAR(100) NOT NULL,
+    data_nascita DATE NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    recapito VARCHAR(190) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY email_unica (email)
+) ENGINE=InnoDB;
