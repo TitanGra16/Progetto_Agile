@@ -31,21 +31,28 @@ class UtenteRepository
      * @param Utente $utente Utente da inserire.
      * @return int Identificativo assegnato da MySQL.
      *
-     * @throws mysqli_sql_exception Se l'inserimento fallisce.
+     * @throws \mysqli_sql_exception Se l'inserimento fallisce.
      */
     public function salva(Utente $utente): int
     {
-        $nome = $this->connessione->real_escape_string($utente->getNome());
-        $cognome = $this->connessione->real_escape_string($utente->getCognome());
-        $dataNascita = $this->connessione->real_escape_string($utente->getDataNascita());
-        $recapito = $this->connessione->real_escape_string($utente->getRecapito());
-        $email = $this->connessione->real_escape_string($utente->getEmail());
-        $password = $this->connessione->real_escape_string($utente->getPassword());
+        $nome = $utente->getNome();
+        $cognome = $utente->getCognome();
+        $dataNascita = $utente->getDataNascita();
+        $recapito = $utente->getRecapito();
+        $email = $utente->getEmail();
+
+        $nome = $this->connessione->real_escape_string($nome);
+        $cognome = $this->connessione->real_escape_string($cognome);
+        $dataNascita = $this->connessione->real_escape_string($dataNascita);
+        $recapito = $this->connessione->real_escape_string($recapito);
+        $email = $email === null
+            ? 'NULL'
+            : '"' . $this->connessione->real_escape_string($email) . '"';
 
         $this->connessione->query(
-            'INSERT INTO utenti (nome, cognome, data_nascita, recapito, email, password_utente)
+            'INSERT INTO utenti (nome, cognome, data_nascita, recapito, email)
              VALUES ("' . $nome . '", "' . $cognome . '", "' . $dataNascita . '",
-                     "' . $recapito . '", "' . $email . '", "' . $password . '")'
+                     "' . $recapito . '", ' . $email . ')'
         );
 
         return (int) $this->connessione->insert_id;
@@ -56,7 +63,7 @@ class UtenteRepository
      *
      * @return bool True se viene trovato un possibile duplicato.
      *
-     * @throws mysqli_sql_exception Se la query fallisce.
+     * @throws \mysqli_sql_exception Se la query fallisce.
      */
     public function esistePotenzialeDuplicato(string $nome, string $cognome, string $dataNascita): bool
     {
@@ -70,6 +77,19 @@ class UtenteRepository
              AND cognome = "' . $cognome . '"
              AND data_nascita = "' . $dataNascita . '"
              LIMIT 1'
+        );
+
+        return $risultato->num_rows > 0;
+    }
+
+    /**
+     * Verifica se l'indirizzo email e gia registrato.
+     */
+    public function esisteEmail(string $email): bool
+    {
+        $email = $this->connessione->real_escape_string($email);
+        $risultato = $this->connessione->query(
+            'SELECT id FROM utenti WHERE email = "' . $email . '" LIMIT 1'
         );
 
         return $risultato->num_rows > 0;

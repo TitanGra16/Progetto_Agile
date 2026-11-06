@@ -14,22 +14,31 @@ class ValidatoreIscritto
      */
     public function validaIscritto(array $iscritto): bool
     {
-        $campiObbligatori = ['nome', 'cognome', 'data_nascita', 'recapito', 'email', 'password'];
-        foreach ($campiObbligatori as $campo) {
+        $campiObbligatori = [
+            'nome' => 100,
+            'cognome' => 100,
+            'data_nascita' => 10,
+            'email' => 255,
+        ];
+        foreach ($campiObbligatori as $campo => $lunghezzaMassima) {
             if (!isset($iscritto[$campo]) || !is_string($iscritto[$campo]) || trim($iscritto[$campo]) === '') {
                 return false;
             }
-        }
-
-        // Le lunghezze devono rispettare le colonne della tabella utenti.
-        $lunghezzeMassime = ['nome' => 100, 'cognome' => 100, 'recapito' => 190, 'email' => 255];
-        foreach ($lunghezzeMassime as $campo => $lunghezzaMassima) {
             if (mb_strlen($iscritto[$campo]) > $lunghezzaMassima) {
                 return false;
             }
         }
 
-        if (filter_var($iscritto['email'], FILTER_VALIDATE_EMAIL) === false) {
+        if (isset($iscritto['recapito'])) {
+            if (!is_string($iscritto['recapito'])) {
+                return false;
+            }
+            if (mb_strlen(trim($iscritto['recapito'])) > 190) {
+                return false;
+            }
+        }
+
+        if (filter_var(trim($iscritto['email']), FILTER_VALIDATE_EMAIL) === false) {
             return false;
         }
 

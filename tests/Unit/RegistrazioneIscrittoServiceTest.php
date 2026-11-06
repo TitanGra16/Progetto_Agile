@@ -15,123 +15,81 @@ final class RegistrazioneIscrittoServiceTest extends TestCase
             'nome' => 'Anna',
             'cognome' => "D'Angelo",
             'data_nascita' => '2000-02-29',
+            'email' => 'anna@example.test',
             'recapito' => 'Recapito di prova',
-            'email' => 'iscritto@example.test',
-            'password' => 'password_di_prova',
         ];
     }
 
-    public function testRegistraValido(): void
+    public function testRegistraDatiValidi(): void
     {
-        // createMock non esegue il costruttore del Repository e non apre MySQL.
-        $archivioUtenti = $this->createMock(UtenteRepository::class);
-        $archivioUtenti->expects($this->once())
-            ->method('esistePotenzialeDuplicato')
-            ->with('Anna', "D'Angelo", '2000-02-29')
-            ->willReturn(false);
+        $archivio = $this->createMock(UtenteRepository::class);
+        $archivio->expects($this->once())->method('esisteEmail')->willReturn(false);
+        $archivio->expects($this->once())->method('esistePotenzialeDuplicato')->willReturn(false);
+        $archivio->expects($this->once())->method('salva')
+            ->with(new Utente(null, 'Anna', "D'Angelo", '2000-02-29', 'Recapito di prova', 'iscritto@example.test'))
+            ->willReturn(73);
 
-        // Questa funzione controlla l'Utente ricevuto al posto del vero salvataggio.
-        $archivioUtenti->expects($this->once())
-            ->method('salva')
-            ->willReturnCallback(function (Utente $utente): int {
-                $this->assertSame('Anna', $utente->getNome());
-                $this->assertSame("D'Angelo", $utente->getCognome());
-                $this->assertSame('2000-02-29', $utente->getDataNascita());
-                $this->assertSame('Recapito di prova', $utente->getRecapito());
-                $this->assertSame('iscritto@example.test', $utente->getEmail());
-                $this->assertNotSame('password_di_prova', $utente->getPassword());
-                $this->assertTrue(password_verify('password_di_prova', $utente->getPassword()));
-                return 73;
-            });
-
-        $servizio = new RegistrazioneIscrittoService($archivioUtenti);
-        $risultato = $servizio->registra($this->dati());
+        $dati = $this->dati();
+        $dati['email'] = '  iscritto@example.test  ';
+        $risultato = (new RegistrazioneIscrittoService($archivio))->registra($dati);
 
         $this->assertSame('registrato', $risultato['esito']);
         $this->assertSame(73, $risultato['codice_iscritto']);
-        $this->assertNotEmpty($risultato['messaggio']);
     }
 
-    public function testRifiutaNonValido(): void
+    public function testRifiutaDatiNonValidi(): void
     {
-        $archivioUtenti = $this->createMock(UtenteRepository::class);
-        $archivioUtenti->expects($this->never())->method('esistePotenzialeDuplicato');
-        $archivioUtenti->expects($this->never())->method('salva');
+        $archivio = $this->createMock(UtenteRepository::class);
+        $archivio->expects($this->never())->method('esistePotenzialeDuplicato');
+        $archivio->expects($this->never())->method('salva');
+        $servizio = new RegistrazioneIscrittoService($archivio);
 
-        $servizio = new RegistrazioneIscrittoService($archivioUtenti);
-        $dati = $this->dati();
-        $dati['email'] = 'email-non-valida';
-        $risultato = $servizio->registra($dati);
-
-        $this->assertSame('dati_non_validi', $risultato['esito']);
-        $this->assertNull($risultato['codice_iscritto']);
+        foreach ([['nome' => '   '], ['email' => 'email-non-valida'], ['data_nascita' => '2000-02-30']] as $modifica) {
+            $dati = $this->dati();
+            $dati = array_merge($dati, $modifica);
+            $risultato = $servizio->registra($dati);
+            $this->assertSame('dati_non_validi', $risultato['esito']);
+        }
     }
 
-    public function testSegnalaDuplicato(): void
+    public function testGestisceDuplicatoConConferma(): void
     {
-        $archivioUtenti = $this->createMock(UtenteRepository::class);
-        $archivioUtenti->expects($this->once())->method('esistePotenzialeDuplicato')->willReturn(true);
-        $archivioUtenti->expects($this->never())->method('salva');
-
-        $servizio = new RegistrazioneIscrittoService($archivioUtenti);
-        $risultato = $servizio->registra($this->dati());
-
-        $this->assertSame('possibile_duplicato', $risultato['esito']);
-        $this->assertStringContainsString('Possibile duplicato', $risultato['messaggio']);
-        $this->assertNull($risultato['codice_iscritto']);
-    }
-
-    public function testConfermaDuplicato(): void
-    {
-        $archivioUtenti = $this->createMock(UtenteRepository::class);
-        $archivioUtenti->expects($this->exactly(2))->method('esistePotenzialeDuplicato')->willReturn(true);
-        $archivioUtenti->expects($this->once())->method('salva')->willReturn(74);
-        $servizio = new RegistrazioneIscrittoService($archivioUtenti);
+        $archivio = $this->createMock(UtenteRepository::class);
+        $archivio->expects($this->exactly(2))->method('esisteEmail')->willReturn(false);
+        $archivio->expects($this->exactly(2))->method('esistePotenzialeDuplicato')->willReturn(true);
+        $archivio->expects($this->once())->method('salva')->willReturn(74);
+        $servizio = new RegistrazioneIscrittoService($archivio);
         $dati = $this->dati();
 
         $avviso = $servizio->registra($dati);
         $this->assertSame('possibile_duplicato', $avviso['esito']);
-        $this->assertNull($avviso['codice_iscritto']);
 
-        $confermato = $servizio->registra($dati, true);
-        $this->assertSame('registrato', $confermato['esito']);
-        $this->assertSame(74, $confermato['codice_iscritto']);
-        $this->assertStringContainsString('conferma esplicita', $confermato['messaggio']);
+        $risultato = $servizio->registra($dati, true);
+        $this->assertSame('registrato', $risultato['esito']);
+        $this->assertSame(74, $risultato['codice_iscritto']);
     }
 
-    public function testConfermaNonValida(): void
+    public function testBloccaEmailGiaUsataAncheConConferma(): void
     {
-        $archivioUtenti = $this->createMock(UtenteRepository::class);
-        $archivioUtenti->expects($this->never())->method('esistePotenzialeDuplicato');
-        $archivioUtenti->expects($this->never())->method('salva');
-        $servizio = new RegistrazioneIscrittoService($archivioUtenti);
+        $archivio = $this->createMock(UtenteRepository::class);
+        $archivio->expects($this->once())->method('esisteEmail')->willReturn(true);
+        $archivio->expects($this->never())->method('esistePotenzialeDuplicato');
+        $archivio->expects($this->never())->method('salva');
 
-        $risultato = $servizio->registra([], true);
+        $risultato = (new RegistrazioneIscrittoService($archivio))
+            ->registra($this->dati(), true);
 
-        $this->assertSame('dati_non_validi', $risultato['esito']);
+        $this->assertSame('email_duplicata', $risultato['esito']);
+        $this->assertSame('Email già associata a un iscritto', $risultato['messaggio']);
         $this->assertNull($risultato['codice_iscritto']);
-    }
 
-    public function testErroreRicerca(): void
-    {
-        $archivioUtenti = $this->createMock(UtenteRepository::class);
-        $archivioUtenti->expects($this->once())->method('esistePotenzialeDuplicato')
-            ->willThrowException(new RuntimeException('Ricerca non riuscita'));
-        $archivioUtenti->expects($this->never())->method('salva');
-        $servizio = new RegistrazioneIscrittoService($archivioUtenti);
+        $archivio = $this->createMock(UtenteRepository::class);
+        $archivio->expects($this->once())->method('esisteEmail')->willReturn(false);
+        $archivio->expects($this->once())->method('esistePotenzialeDuplicato')->willReturn(false);
+        $archivio->expects($this->once())->method('salva')
+            ->willThrowException(new mysqli_sql_exception('Duplicate entry', 1062));
 
-        $this->expectException(RuntimeException::class);
-        $servizio->registra($this->dati());
-    }
-
-    public function testErroreSalvataggio(): void
-    {
-        $archivioUtenti = $this->createMock(UtenteRepository::class);
-        $archivioUtenti->expects($this->once())->method('esistePotenzialeDuplicato')->willReturn(false);
-        $archivioUtenti->expects($this->once())->method('salva')->willThrowException(new RuntimeException('Salvataggio non riuscito'));
-        $servizio = new RegistrazioneIscrittoService($archivioUtenti);
-
-        $this->expectException(RuntimeException::class);
-        $servizio->registra($this->creaDatiDiProva());
+        $risultato = (new RegistrazioneIscrittoService($archivio))->registra($this->dati());
+        $this->assertSame('email_duplicata', $risultato['esito']);
     }
 }

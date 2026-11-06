@@ -1,9 +1,7 @@
 <?php
 namespace Ladythelemons\Fitslot\DataModel;
 
-/**
- * Rappresenta i dati anagrafici e di accesso di un iscritto.
- */
+/** Rappresenta l'anagrafica dell'iscritto e l'eventuale email di contatto. */
 class Utente {
     private $id;
     private $nome;
@@ -11,19 +9,13 @@ class Utente {
     private $data_nascita;
     private $recapito;
     private $email;
-    private $password;
-
-    /**
-     * Inizializza un utente.
-     */
-    public function __construct($id, $nome, $cognome, $data_nascita, $recapito, $email, $password) {
+    public function __construct($id, $nome, $cognome, $data_nascita, $recapito, $email = null) {
         $this->id = $id;
         $this->nome = $nome;
         $this->cognome = $cognome;
         $this->data_nascita = $data_nascita;
         $this->recapito = $recapito;
         $this->email = $email;
-        $this->password = $password;
     }
 
     /** Restituisce l'identificativo dell'utente. */
@@ -56,8 +48,4 @@ class Utente {
         return $this->recapito;
     }
 
-    /** Restituisce la password o il suo hash, secondo il momento del flusso. */
-    public function getPassword() {
-        return $this->password;
-    }
 }

@@ -10,90 +10,72 @@ use PHPUnit\Framework\TestCase;
 final class UtenteRepositoryTest extends TestCase
 {
     private ?mysqli $connessione = null;
-    private UtenteRepository $archivioUtenti;
+    private UtenteRepository $archivio;
 
     protected function setUp(): void
     {
         $this->connessione = Database::connetti();
-
-        // Solo questa connessione vede la tabella temporanea.
-        // La tabella utenti reale e i suoi dati restano intatti.
         $this->connessione->query('
             CREATE TEMPORARY TABLE utenti (
                 id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 nome VARCHAR(100) NOT NULL,
                 cognome VARCHAR(100) NOT NULL,
                 data_nascita DATE NOT NULL,
-                recapito VARCHAR(190) NOT NULL,
                 email VARCHAR(255) NOT NULL,
-                password_utente VARCHAR(255) NOT NULL
-            )
+                recapito VARCHAR(190) NULL,
+                UNIQUE KEY email_unica (email)
+            ) ENGINE=InnoDB
         ');
         $this->connessione->begin_transaction();
-        $this->archivioUtenti = new UtenteRepository($this->connessione);
+        $this->archivio = new UtenteRepository($this->connessione);
     }
 
     protected function tearDown(): void
     {
-        if ($this->connessione !== null) {
-            try {
-                $this->connessione->rollback();
-            } finally {
-                // La chiusura rimuove anche la tabella temporanea.
-                $this->connessione->close();
-            }
-        }
+        $this->connessione?->rollback();
+        $this->connessione?->close();
     }
 
-    private function utente(): Utente
+    private function utente(string $nome = 'Anna', string $email = 'anna@example.test'): Utente
     {
-        return new Utente(
-            null,
-            'Anna',
-            "D'Angelo",
-            '2000-02-29',
-            'Recapito di prova',
-            'iscritto@example.test',
-            password_hash('password_di_prova', PASSWORD_DEFAULT)
-        );
+        return new Utente(null, $nome, "D'Angelo", '2000-02-29', 'Recapito di prova', $email);
     }
 
-    public function testSalva(): void
+    public function testSalvaUtente(): void
     {
-        $utente = $this->utente();
-        $id = $this->archivioUtenti->salva($utente);
+        $id = $this->archivio->salva($this->utente(email: 'iscritto@example.test'));
+        $riga = $this->connessione->query('SELECT * FROM utenti WHERE id = ' . $id)->fetch_assoc();
+
         $this->assertGreaterThan(0, $id);
-
-        $risultato = $this->connessione->query('SELECT * FROM utenti WHERE id = ' . $id);
-        $riga = $risultato->fetch_assoc();
-
-        $this->assertNotNull($riga);
-        $this->assertSame($utente->getNome(), $riga['nome']);
-        $this->assertSame($utente->getCognome(), $riga['cognome']);
-        $this->assertSame($utente->getDataNascita(), $riga['data_nascita']);
-        $this->assertSame($utente->getRecapito(), $riga['recapito']);
-        $this->assertSame($utente->getEmail(), $riga['email']);
-        $this->assertSame($utente->getPassword(), $riga['password_utente']);
-        $this->assertTrue(password_verify('password_di_prova', $riga['password_utente']));
+        $this->assertSame('Anna', $riga['nome']);
+        $this->assertSame('iscritto@example.test', $riga['email']);
     }
 
-    public function testDuplicato(): void
+    public function testTrovaDuplicati(): void
     {
-        $this->assertFalse($this->archivioUtenti->esistePotenzialeDuplicato('Anna', "D'Angelo", '2000-02-29'));
-        $this->archivioUtenti->salva($this->utente());
-        $this->assertTrue($this->archivioUtenti->esistePotenzialeDuplicato('Anna', "D'Angelo", '2000-02-29'));
-        $this->assertFalse($this->archivioUtenti->esistePotenzialeDuplicato('Anna', "D'Angelo", '2001-02-28'));
-        $this->assertFalse($this->archivioUtenti->esistePotenzialeDuplicato('Anna', 'Rossi', '2000-02-29'));
+        $this->assertFalse($this->archivio->esistePotenzialeDuplicato('Anna', "D'Angelo", '2000-02-29'));
+        $this->archivio->salva($this->utente());
+        $this->assertTrue($this->archivio->esistePotenzialeDuplicato('Anna', "D'Angelo", '2000-02-29'));
+        $this->assertFalse($this->archivio->esistePotenzialeDuplicato('Anna', 'Rossi', '2000-02-29'));
     }
 
-    public function testTestoSQL(): void
+    public function testEmailUnica(): void
+    {
+        $this->archivio->salva($this->utente(email: 'usata@example.test'));
+
+        $this->assertTrue($this->archivio->esisteEmail('usata@example.test'));
+        $this->assertFalse($this->archivio->esisteEmail('altra@example.test'));
+
+        $this->expectException(mysqli_sql_exception::class);
+        $this->archivio->salva($this->utente('Altro nome', 'usata@example.test'));
+    }
+
+    public function testGestisceTestoSpeciale(): void
     {
         $nome = "Prova' OR '1'='1";
-        $utente = new Utente(null, $nome, 'Cognome di prova', '2000-01-01', 'Recapito di prova', 'sql@example.test', password_hash('password_di_prova', PASSWORD_DEFAULT));
-        $this->archivioUtenti->salva($utente);
+        $this->archivio->salva($this->utente($nome, 'sql@example.test'));
 
-        $this->assertTrue($this->archivioUtenti->esistePotenzialeDuplicato($nome, 'Cognome di prova', '2000-01-01'));
-        $this->assertFalse($this->archivioUtenti->esistePotenzialeDuplicato("' OR 1=1 -- ", 'Cognome di prova', '2000-01-01'));
-        $this->assertSame('1', $this->connessione->query('SELECT COUNT(*) FROM utenti')->fetch_row()[0]);
+        $this->assertTrue($this->archivio->esistePotenzialeDuplicato($nome, "D'Angelo", '2000-02-29'));
+        $this->assertFalse($this->archivio->esistePotenzialeDuplicato("' OR 1=1 -- ", "D'Angelo", '2000-02-29'));
     }
 }

@@ -30,9 +30,8 @@ class RegistrazioneIscrittoService
      * @param array<string, mixed> $datiIscritto Dati ricevuti dal modulo di registrazione.
      * @param bool $confermaDuplicato True solo dopo la conferma esplicita della reception.
      * @return array{esito: string, messaggio: string, codice_iscritto: int|null}
-     *     Esito, messaggio e codice dell'iscritto.
      *
-     * @throws RuntimeException Se il repository non riesce a cercare o salvare.
+     * @throws \mysqli_sql_exception Se il repository non riesce a cercare o salvare.
      */
     public function registra(array $datiIscritto, bool $confermaDuplicato = false): array
     {
@@ -40,6 +39,14 @@ class RegistrazioneIscrittoService
             return [
                 'esito' => 'dati_non_validi',
                 'messaggio' => "I dati dell'iscritto sono mancanti o non validi.",
+                'codice_iscritto' => null,
+            ];
+        }
+
+        if ($this->archivioUtenti->esisteEmail(trim($datiIscritto['email']))) {
+            return [
+                'esito' => 'email_duplicata',
+                'messaggio' => 'Email già associata a un iscritto',
                 'codice_iscritto' => null,
             ];
         }
@@ -58,17 +65,27 @@ class RegistrazioneIscrittoService
             ];
         }
 
-        $passwordProtetta = password_hash($datiIscritto['password'], PASSWORD_DEFAULT);
         $utente = new Utente(
             null,
             $datiIscritto['nome'],
             $datiIscritto['cognome'],
             $datiIscritto['data_nascita'],
-            $datiIscritto['recapito'],
-            $datiIscritto['email'],
-            $passwordProtetta
+            trim($datiIscritto['recapito'] ?? ''),
+            trim($datiIscritto['email'])
         );
-        $codiceIscritto = $this->archivioUtenti->salva($utente);
+        try {
+            $codiceIscritto = $this->archivioUtenti->salva($utente);
+        } catch (\mysqli_sql_exception $errore) {
+            if ($errore->getCode() !== 1062) {
+                throw $errore;
+            }
+
+            return [
+                'esito' => 'email_duplicata',
+                'messaggio' => 'Email già associata a un iscritto',
+                'codice_iscritto' => null,
+            ];
+        }
 
         $messaggio = 'Iscritto registrato correttamente.';
         if ($possibileDuplicato) {
