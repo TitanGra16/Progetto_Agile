@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ValidatoreIscrittoTest extends TestCase
 {
-    private function creaIscrittoDiProva(): array
+    private function dati(): array
     {
         return [
             'nome' => 'Anna Maria',
@@ -19,89 +19,89 @@ final class ValidatoreIscrittoTest extends TestCase
         ];
     }
 
-    public function testDatiValidiVengonoAccettati(): void
+    public function testValido(): void
     {
         $validatore = new ValidatoreIscritto();
-        $this->assertTrue($validatore->validaIscritto($this->creaIscrittoDiProva()));
+        $this->assertTrue($validatore->validaIscritto($this->dati()));
     }
 
-    public function testDatiAssentiVengonoRifiutati(): void
+    public function testVuoto(): void
     {
         $validatore = new ValidatoreIscritto();
         $this->assertFalse($validatore->validaIscritto([]));
     }
 
-    public function testOgniCampoObbligatorioDeveEsserePresente(): void
+    public function testCampiObbligatori(): void
     {
         $validatore = new ValidatoreIscritto();
-        foreach (array_keys($this->creaIscrittoDiProva()) as $campo) {
-            $iscritto = $this->creaIscrittoDiProva();
+        foreach (array_keys($this->dati()) as $campo) {
+            $iscritto = $this->dati();
             unset($iscritto[$campo]);
             $this->assertFalse($validatore->validaIscritto($iscritto), $campo);
         }
     }
 
-    public function testCampiVuotiOSoloSpaziVengonoRifiutati(): void
+    public function testCampiVuoti(): void
     {
         $validatore = new ValidatoreIscritto();
-        foreach (array_keys($this->creaIscrittoDiProva()) as $campo) {
+        foreach (array_keys($this->dati()) as $campo) {
             foreach (['', '   '] as $valore) {
-                $iscritto = $this->creaIscrittoDiProva();
+                $iscritto = $this->dati();
                 $iscritto[$campo] = $valore;
                 $this->assertFalse($validatore->validaIscritto($iscritto), $campo);
             }
         }
     }
 
-    public function testEmailNonValidaVieneRifiutata(): void
+    public function testEmail(): void
     {
         $validatore = new ValidatoreIscritto();
-        $iscritto = $this->creaIscrittoDiProva();
+        $iscritto = $this->dati();
         $iscritto['email'] = 'email-senza-dominio';
         $this->assertFalse($validatore->validaIscritto($iscritto));
     }
 
-    public function testDataInesistenteVieneRifiutata(): void
+    public function testDataInesistente(): void
     {
         $validatore = new ValidatoreIscritto();
-        $iscritto = $this->creaIscrittoDiProva();
+        $iscritto = $this->dati();
         $iscritto['data_nascita'] = '2023-02-29';
         $this->assertFalse($validatore->validaIscritto($iscritto));
     }
 
-    public function testDataInFormatoDiversoVieneRifiutata(): void
+    public function testFormatoData(): void
     {
         $validatore = new ValidatoreIscritto();
         foreach (['29/02/2000', '2000-2-29', '2000-aa-29'] as $data) {
-            $iscritto = $this->creaIscrittoDiProva();
+            $iscritto = $this->dati();
             $iscritto['data_nascita'] = $data;
             $this->assertFalse($validatore->validaIscritto($iscritto));
         }
     }
 
-    public function testDataFuturaVieneRifiutata(): void
+    public function testDataFutura(): void
     {
         $validatore = new ValidatoreIscritto();
-        $iscritto = $this->creaIscrittoDiProva();
+        $iscritto = $this->dati();
         $iscritto['data_nascita'] = '2999-01-01';
         $this->assertFalse($validatore->validaIscritto($iscritto));
     }
 
-    public function testCampiTroppoLunghiVengonoRifiutati(): void
+    public function testCampiLunghi(): void
     {
         $validatore = new ValidatoreIscritto();
         $lunghezzeNonValide = ['nome' => 101, 'cognome' => 101, 'recapito' => 191, 'email' => 256];
         foreach ($lunghezzeNonValide as $campo => $lunghezza) {
-            $iscritto = $this->creaIscrittoDiProva();
+            $iscritto = $this->dati();
             $iscritto[$campo] = str_repeat('a', $lunghezza);
             $this->assertFalse($validatore->validaIscritto($iscritto), $campo);
         }
     }
 
-    public function testLunghezzeMassimeDiNomeCognomeERecapitoVengonoAccettate(): void
+    public function testLunghezzeMassime(): void
     {
         $validatore = new ValidatoreIscritto();
-        $iscritto = $this->creaIscrittoDiProva();
+        $iscritto = $this->dati();
         $iscritto['nome'] = str_repeat('a', 100);
         $iscritto['cognome'] = str_repeat('b', 100);
         $iscritto['recapito'] = str_repeat('c', 190);

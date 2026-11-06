@@ -45,7 +45,7 @@ final class UtenteRepositoryTest extends TestCase
         }
     }
 
-    private function creaUtenteDiProva(): Utente
+    private function utente(): Utente
     {
         return new Utente(
             null,
@@ -58,9 +58,9 @@ final class UtenteRepositoryTest extends TestCase
         );
     }
 
-    public function testSalvaUnIscrittoERestituisceIlSuoId(): void
+    public function testSalva(): void
     {
-        $utente = $this->creaUtenteDiProva();
+        $utente = $this->utente();
         $id = $this->archivioUtenti->salva($utente);
         $this->assertGreaterThan(0, $id);
 
@@ -77,16 +77,16 @@ final class UtenteRepositoryTest extends TestCase
         $this->assertTrue(password_verify('password_di_prova', $riga['password_utente']));
     }
 
-    public function testRiconosceUnPotenzialeDuplicato(): void
+    public function testDuplicato(): void
     {
         $this->assertFalse($this->archivioUtenti->esistePotenzialeDuplicato('Anna', "D'Angelo", '2000-02-29'));
-        $this->archivioUtenti->salva($this->creaUtenteDiProva());
+        $this->archivioUtenti->salva($this->utente());
         $this->assertTrue($this->archivioUtenti->esistePotenzialeDuplicato('Anna', "D'Angelo", '2000-02-29'));
         $this->assertFalse($this->archivioUtenti->esistePotenzialeDuplicato('Anna', "D'Angelo", '2001-02-28'));
         $this->assertFalse($this->archivioUtenti->esistePotenzialeDuplicato('Anna', 'Rossi', '2000-02-29'));
     }
 
-    public function testIlTestoSQLVieneTrattatoComeUnDato(): void
+    public function testTestoSQL(): void
     {
         $nome = "Prova' OR '1'='1";
         $utente = new Utente(null, $nome, 'Cognome di prova', '2000-01-01', 'Recapito di prova', 'sql@example.test', password_hash('password_di_prova', PASSWORD_DEFAULT));
