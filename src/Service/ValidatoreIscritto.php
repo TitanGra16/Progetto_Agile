@@ -19,21 +19,13 @@ class ValidatoreIscritto
             'cognome' => 100,
             'data_nascita' => 10,
             'email' => 255,
+            'recapito' => 190,
         ];
         foreach ($campiObbligatori as $campo => $lunghezzaMassima) {
             if (!isset($iscritto[$campo]) || !is_string($iscritto[$campo]) || trim($iscritto[$campo]) === '') {
                 return false;
             }
             if (mb_strlen($iscritto[$campo]) > $lunghezzaMassima) {
-                return false;
-            }
-        }
-
-        if (isset($iscritto['recapito'])) {
-            if (!is_string($iscritto['recapito'])) {
-                return false;
-            }
-            if (mb_strlen(trim($iscritto['recapito'])) > 190) {
                 return false;
             }
         }

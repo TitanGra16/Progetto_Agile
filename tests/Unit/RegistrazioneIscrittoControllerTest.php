@@ -15,7 +15,7 @@ final class RegistrazioneIscrittoControllerTest extends TestCase
             'cognome' => "D'Angelo",
             'data_nascita' => '2000-02-29',
             'email' => 'anna@example.test',
-            'recapito' => '',
+            'recapito' => '3331234567',
         ];
     }
 

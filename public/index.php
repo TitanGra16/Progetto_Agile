@@ -56,8 +56,8 @@ if (isset($_SESSION['risultato_registrazione'])) {
             <input id="email" name="email" type="email" maxlength="255" placeholder="Es. anna.rossi@email.com" value="<?= htmlspecialchars($pagina['dati']['email'], ENT_QUOTES, 'UTF-8') ?>" required>
         </p>
         <p>
-            <label for="recapito">Telefono (facoltativo)</label><br>
-            <input id="recapito" name="recapito" type="text" maxlength="190" placeholder="Es. 333 1234567" value="<?= htmlspecialchars($pagina['dati']['recapito'], ENT_QUOTES, 'UTF-8') ?>">
+            <label for="recapito">Telefono *</label><br>
+            <input id="recapito" name="recapito" type="text" maxlength="190" placeholder="Es. 333 1234567" value="<?= htmlspecialchars($pagina['dati']['recapito'], ENT_QUOTES, 'UTF-8') ?>" required>
         </p>
         <?php if ($pagina['richiede_conferma']): ?>
             <p>Conferma soltanto dopo aver verificato che vuoi registrare comunque questi dati.</p>

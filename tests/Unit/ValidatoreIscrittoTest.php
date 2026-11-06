@@ -24,7 +24,7 @@ final class ValidatoreIscrittoTest extends TestCase
         $this->assertTrue($validatore->validaIscritto($this->dati()));
 
         $dati = $this->dati();
-        $dati['recapito'] = '';
+        $dati['recapito'] = '3331234567';
         $this->assertTrue($validatore->validaIscritto($dati));
     }
 
@@ -42,6 +42,10 @@ final class ValidatoreIscrittoTest extends TestCase
             $dati['email'] = $email;
             $this->assertFalse($validatore->validaIscritto($dati));
         }
+
+        $dati = $this->dati();
+        $dati['recapito'] = '';
+        $this->assertFalse($validatore->validaIscritto($dati));
     }
 
     public function testRifiutaDateELunghezzeNonValide(): void

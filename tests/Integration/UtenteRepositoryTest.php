@@ -22,7 +22,7 @@ final class UtenteRepositoryTest extends TestCase
                 cognome VARCHAR(100) NOT NULL,
                 data_nascita DATE NOT NULL,
                 email VARCHAR(255) NOT NULL,
-                recapito VARCHAR(190) NULL,
+                recapito VARCHAR(190) NOT NULL,
                 UNIQUE KEY email_unica (email)
             ) ENGINE=InnoDB
         ');
