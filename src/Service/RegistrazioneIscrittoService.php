@@ -15,6 +15,9 @@ class RegistrazioneIscrittoService
     private UtenteRepository $archivioUtenti;
     private ValidatoreIscritto $validatore;
 
+    /**
+     * Crea il servizio usando il repository degli iscritti.
+     */
     public function __construct(UtenteRepository $archivioUtenti)
     {
         $this->archivioUtenti = $archivioUtenti;
@@ -24,9 +27,12 @@ class RegistrazioneIscrittoService
     /**
      * Registra l'iscritto oppure restituisce un avviso senza salvarlo.
      *
-     * @param array $datiIscritto Dati ricevuti dal modulo di registrazione.
+     * @param array<string, mixed> $datiIscritto Dati ricevuti dal modulo di registrazione.
      * @param bool $confermaDuplicato True solo dopo la conferma esplicita della reception.
-     * @return array Esito, messaggio e codice_iscritto (id MySQL, null se non salvato).
+     * @return array{esito: string, messaggio: string, codice_iscritto: int|null}
+     *     Esito, messaggio e codice dell'iscritto.
+     *
+     * @throws RuntimeException Se il repository non riesce a cercare o salvare.
      */
     public function registra(array $datiIscritto, bool $confermaDuplicato = false): array
     {

@@ -9,7 +9,14 @@ use InvalidArgumentException;
 
 final class Database
 {
-    // Legge e controlla i dati senza collegarsi a MySQL.
+    /**
+     * Legge e valida la configurazione del database senza aprire una connessione.
+     *
+     * @param array<string, mixed>|null $ambiente Variabili di configurazione da usare.
+     * @return array{indirizzo: string, utente: string, password: string, nome_database: string, porta: int}
+     *
+     * @throws InvalidArgumentException Se una variabile e mancante o non valida.
+     */
     public static function leggiConfigurazione(?array $ambiente = null): array
     {
         if ($ambiente === null) {
@@ -57,6 +64,14 @@ final class Database
         ];
     }
 
+    /**
+     * Apre una connessione MySQL usando la configurazione dell'ambiente.
+     *
+     * @return mysqli Connessione configurata con codifica UTF-8.
+     *
+     * @throws InvalidArgumentException Se la configurazione non e valida.
+     * @throws mysqli_sql_exception Se MySQL rifiuta la connessione.
+     */
     public static function connetti(): mysqli
     {
         $configurazione = Database::leggiConfigurazione();

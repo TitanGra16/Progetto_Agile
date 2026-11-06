@@ -6,6 +6,12 @@ namespace Ladythelemons\Fitslot\Service;
 
 class ValidatoreIscritto
 {
+    /**
+     * Controlla presenza, formato e lunghezza dei dati di un iscritto.
+     *
+     * @param array<string, mixed> $iscritto Dati da validare.
+     * @return bool True quando tutti i dati rispettano le regole.
+     */
     public function validaIscritto(array $iscritto): bool
     {
         $campiObbligatori = ['nome', 'cognome', 'data_nascita', 'recapito', 'email', 'password'];
@@ -27,7 +33,6 @@ class ValidatoreIscritto
             return false;
         }
 
-        // MySQL usa il formato anno-mese-giorno, per esempio 2000-02-29.
         $partiData = explode('-', $iscritto['data_nascita']);
         if (count($partiData) !== 3) {
             return false;

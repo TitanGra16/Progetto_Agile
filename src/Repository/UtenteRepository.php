@@ -12,6 +12,11 @@ class UtenteRepository
 {
     private mysqli $connessione;
 
+    /**
+     * Crea il repository con una connessione esistente o ne apre una nuova.
+     *
+     * @param mysqli|null $connessione Connessione da riutilizzare, se disponibile.
+     */
     public function __construct(?mysqli $connessione = null)
     {
         if ($connessione === null) {
@@ -20,6 +25,14 @@ class UtenteRepository
         $this->connessione = $connessione;
     }
 
+    /**
+     * Salva un utente nella tabella utenti.
+     *
+     * @param Utente $utente Utente da inserire.
+     * @return int Identificativo assegnato da MySQL.
+     *
+     * @throws mysqli_sql_exception Se l'inserimento fallisce.
+     */
     public function salva(Utente $utente): int
     {
         $nome = $this->connessione->real_escape_string($utente->getNome());
@@ -38,7 +51,13 @@ class UtenteRepository
         return (int) $this->connessione->insert_id;
     }
 
-    // Segnala una possibile corrispondenza, senza decidere se bloccare la registrazione.
+    /**
+     * Verifica se esiste un utente con gli stessi dati identificativi.
+     *
+     * @return bool True se viene trovato un possibile duplicato.
+     *
+     * @throws mysqli_sql_exception Se la query fallisce.
+     */
     public function esistePotenzialeDuplicato(string $nome, string $cognome, string $dataNascita): bool
     {
         $nome = $this->connessione->real_escape_string($nome);
