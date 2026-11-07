@@ -51,7 +51,12 @@ class AccountRepository
         $query = $connessione->prepare(
             'INSERT INTO account
                 (id, password_hash, activation_token_hash, activation_expires_at)
-             VALUES (?, NULL, ?, ?)'
+             VALUES (?, NULL, ?, ?)
+             ON DUPLICATE KEY UPDATE
+                password_hash = NULL,
+                activation_token_hash = VALUES(activation_token_hash),
+                activation_expires_at = VALUES(activation_expires_at),
+                activated_at = NULL'
         );
         $query->bind_param('iss', $idUtente, $tokenHash, $scadenza);
         $query->execute();
