@@ -173,7 +173,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 Non hai ancora un account? Passa in una nostra sede!
                 <!--<span class="register-highlight">Registrati</span> -->
             </p>
-            <p><a href="richiesta-attivazione.php">Attiva il tuo account</a></p>
 
         </section>
 
