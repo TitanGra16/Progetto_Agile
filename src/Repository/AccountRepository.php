@@ -21,7 +21,7 @@ class AccountRepository
         // Usa la connessione ricevuta, oppure ne crea una nuova
         $connessione = $this->connessione ?? Database::connetti();
 
-        $sql = "SELECT account.id, account.password_hash
+        $sql = "SELECT account.id, account.password_hash, account.stato
                 FROM account
                 JOIN utenti ON account.id = utenti.id
                 WHERE utenti.email = ?";
@@ -50,10 +50,11 @@ class AccountRepository
 
         $query = $connessione->prepare(
             'INSERT INTO account
-                (id, password_hash, activation_token_hash, activation_expires_at)
-             VALUES (?, NULL, ?, ?)
+                (id, password_hash, stato, activation_token_hash, activation_expires_at)
+             VALUES (?, NULL, \'PENDING\', ?, ?)
              ON DUPLICATE KEY UPDATE
                 password_hash = NULL,
+                stato = \'PENDING\',
                 activation_token_hash = VALUES(activation_token_hash),
                 activation_expires_at = VALUES(activation_expires_at),
                 activated_at = NULL'
@@ -72,7 +73,7 @@ class AccountRepository
         $connessione = $this->connessione ?? Database::connetti();
 
         $query = $connessione->prepare(
-            'SELECT id, activation_expires_at, activated_at
+            'SELECT id, activation_expires_at, activated_at, stato
              FROM account
              WHERE activation_token_hash = ?'
         );
@@ -96,6 +97,7 @@ class AccountRepository
         $query = $connessione->prepare(
             'UPDATE account
              SET password_hash = ?,
+                 stato = \'ACTIVE\',
                  activation_token_hash = NULL,
                  activation_expires_at = NULL,
                  activated_at = CURRENT_TIMESTAMP

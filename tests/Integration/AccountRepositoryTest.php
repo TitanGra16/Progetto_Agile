@@ -31,15 +31,16 @@ final class AccountRepositoryTest extends TestCase
         ');
 
         // Creiamo una tabella account temporanea
-        $this->connessione->query('
+        $this->connessione->query("
             CREATE TEMPORARY TABLE account (
                 id BIGINT UNSIGNED PRIMARY KEY,
                 password_hash VARCHAR(255) NULL,
+                stato ENUM('PENDING', 'ACTIVE') NOT NULL DEFAULT 'PENDING',
                 activation_token_hash VARCHAR(64) NULL,
                 activation_expires_at DATETIME NULL,
                 activated_at DATETIME NULL
             ) ENGINE=InnoDB
-        ');
+        ");
 
         // Inseriamo un utente fittizio
         $this->connessione->query("
@@ -58,7 +59,7 @@ final class AccountRepositoryTest extends TestCase
 
         // Creiamo l'account associato all'utente
         $query = $this->connessione->prepare(
-            'INSERT INTO account (id, password_hash, activated_at) VALUES (?, ?, CURRENT_TIMESTAMP)'
+            "INSERT INTO account (id, password_hash, stato, activated_at) VALUES (?, ?, 'ACTIVE', CURRENT_TIMESTAMP)"
         );
         $query->bind_param('is', $this->idUtente, $hash);
         $query->execute();
@@ -118,6 +119,7 @@ final class AccountRepositoryTest extends TestCase
         )->fetch_assoc();
 
         $this->assertNull($risultato['password_hash']);
+        $this->assertSame('PENDING', $risultato['stato']);
         $this->assertSame('hash-token-prova', $risultato['activation_token_hash']);
         $this->assertSame('2030-01-01 12:00:00', $risultato['activation_expires_at']);
         $this->assertNull($risultato['activated_at']);
@@ -135,6 +137,7 @@ final class AccountRepositoryTest extends TestCase
         $this->assertSame($idUtente, (int) $account['id']);
         $this->assertSame('2030-01-01 12:00:00', $account['activation_expires_at']);
         $this->assertNull($account['activated_at']);
+        $this->assertSame('PENDING', $account['stato']);
     }
 
     public function testAttivaAccount(): void
@@ -154,6 +157,7 @@ final class AccountRepositoryTest extends TestCase
         $this->assertNull($risultato['activation_token_hash']);
         $this->assertNull($risultato['activation_expires_at']);
         $this->assertNotNull($risultato['activated_at']);
+        $this->assertSame('ACTIVE', $risultato['stato']);
     }
 
     private function creaUtente(string $email): int
