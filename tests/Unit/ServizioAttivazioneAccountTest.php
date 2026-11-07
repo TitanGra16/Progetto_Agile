@@ -45,6 +45,7 @@ final class ServizioAttivazioneAccountTest extends TestCase
             'id' => 10,
             'activation_expires_at' => '2030-01-02 10:00:00',
             'activated_at' => null,
+            'stato' => 'PENDING',
         ]);
 
         $servizio = new ServizioAttivazioneAccount(
@@ -68,6 +69,7 @@ final class ServizioAttivazioneAccountTest extends TestCase
             'id' => 10,
             'activation_expires_at' => '2030-01-01 09:00:00',
             'activated_at' => null,
+            'stato' => 'PENDING',
         ]);
 
         $servizio = new ServizioAttivazioneAccount(
@@ -90,6 +92,7 @@ final class ServizioAttivazioneAccountTest extends TestCase
             'id' => 10,
             'activation_expires_at' => '2030-01-02 10:00:00',
             'activated_at' => '2030-01-01 11:00:00',
+            'stato' => 'ACTIVE',
         ]);
 
         $servizio = new ServizioAttivazioneAccount(
@@ -167,6 +170,7 @@ final class ServizioAttivazioneAccountTest extends TestCase
             'id' => 10,
             'activation_expires_at' => '2030-01-02 10:00:00',
             'activated_at' => null,
+            'stato' => 'PENDING',
         ]);
         $repository->expects($this->once())
             ->method('attiva')

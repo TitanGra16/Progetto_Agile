@@ -4,3 +4,7 @@ ALTER TABLE account
     ADD COLUMN activation_token_hash VARCHAR(64) NULL,
     ADD COLUMN activation_expires_at DATETIME NULL,
     ADD COLUMN activated_at DATETIME NULL;
+
+UPDATE account
+SET stato = 'ACTIVE'
+WHERE password_hash IS NOT NULL;

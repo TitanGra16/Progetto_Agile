@@ -140,6 +140,45 @@ final class AccountRepositoryTest extends TestCase
         $this->assertSame('PENDING', $account['stato']);
     }
 
+    public function testAggiornaTokenDiAccountInAttesa(): void
+    {
+        $email = 'nuovo-token@example.test';
+        $idUtente = $this->creaUtente($email);
+        $this->repository->creaInAttesa($idUtente, 'primo-token', '2030-01-01 12:00:00');
+        $this->repository->creaInAttesa($idUtente, 'secondo-token', '2030-01-02 12:00:00');
+
+        $risultato = $this->connessione->query(
+            "SELECT * FROM account WHERE id = $idUtente"
+        )->fetch_assoc();
+
+        $this->assertSame('secondo-token', $risultato['activation_token_hash']);
+        $this->assertSame('2030-01-02 12:00:00', $risultato['activation_expires_at']);
+        $this->assertSame('PENDING', $risultato['stato']);
+    }
+
+    public function testNonModificaAccountAttivoQuandoRichiedeUnNuovoToken(): void
+    {
+        $email = 'account-attivo@example.test';
+        $idUtente = $this->creaUtente($email);
+        $hash = password_hash('PasswordProva123!', PASSWORD_DEFAULT);
+        $query = $this->connessione->prepare(
+            "INSERT INTO account (id, password_hash, stato, activated_at) VALUES (?, ?, 'ACTIVE', CURRENT_TIMESTAMP)"
+        );
+        $query->bind_param('is', $idUtente, $hash);
+        $query->execute();
+        $query->close();
+
+        $this->repository->creaInAttesa($idUtente, 'token-non-autorizzato', '2030-01-02 12:00:00');
+
+        $risultato = $this->connessione->query(
+            "SELECT * FROM account WHERE id = $idUtente"
+        )->fetch_assoc();
+
+        $this->assertSame('ACTIVE', $risultato['stato']);
+        $this->assertTrue(password_verify('PasswordProva123!', $risultato['password_hash']));
+        $this->assertNull($risultato['activation_token_hash']);
+    }
+
     public function testAttivaAccount(): void
     {
         $email = 'attiva@example.test';

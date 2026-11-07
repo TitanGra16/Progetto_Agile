@@ -69,7 +69,7 @@ class ServizioAttivazioneAccount
         $tokenHash = $this->generatore->creaHash($token);
         $account = $this->repository->trovaPerToken($tokenHash);
 
-        if ($account === null || $account['activated_at'] !== null) {
+        if ($account === null || $account['stato'] !== 'PENDING') {
             return null;
         }
 
@@ -102,7 +102,7 @@ class ServizioAttivazioneAccount
         }
 
         $account = $this->repository->trovaPerEmail($email);
-        if ($account !== null && $account['password_hash'] !== null) {
+        if ($account !== null && $account['stato'] === 'ACTIVE') {
             return ['esito' => 'gia_attivo', 'messaggio' => 'L’account è già attivo.'];
         }
 

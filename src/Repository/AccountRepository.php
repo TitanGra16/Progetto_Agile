@@ -53,11 +53,8 @@ class AccountRepository
                 (id, password_hash, stato, activation_token_hash, activation_expires_at)
              VALUES (?, NULL, \'PENDING\', ?, ?)
              ON DUPLICATE KEY UPDATE
-                password_hash = NULL,
-                stato = \'PENDING\',
-                activation_token_hash = VALUES(activation_token_hash),
-                activation_expires_at = VALUES(activation_expires_at),
-                activated_at = NULL'
+                activation_token_hash = IF(stato = \'PENDING\', VALUES(activation_token_hash), activation_token_hash),
+                activation_expires_at = IF(stato = \'PENDING\', VALUES(activation_expires_at), activation_expires_at)'
         );
         $query->bind_param('iss', $idUtente, $tokenHash, $scadenza);
         $query->execute();
