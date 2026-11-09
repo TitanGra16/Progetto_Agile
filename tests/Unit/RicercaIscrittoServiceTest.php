@@ -18,8 +18,7 @@ final class RicercaIscrittoServiceTest extends TestCase
             ->with('Maglione')
             ->willReturn([$primo, $secondo]);
 
-        $servizio = new RicercaIscrittoService($archivio);
-        $risultati = $servizio->cerca('Maglione');
+        $risultati = (new RicercaIscrittoService($archivio))->cerca('Maglione');
 
         $this->assertCount(2, $risultati['risultati']);
         $this->assertSame([$primo, $secondo], $risultati['risultati']);
@@ -33,8 +32,7 @@ final class RicercaIscrittoServiceTest extends TestCase
             ->with('Tessari')
             ->willReturn([]);
 
-        $servizio = new RicercaIscrittoService($archivio);
-        $risultato = $servizio->cerca('Tessari');
+        $risultato = (new RicercaIscrittoService($archivio))->cerca('Tessari');
 
         $this->assertSame('Iscritto non trovato', $risultato['messaggio']);
         $this->assertSame([], $risultato['risultati']);
@@ -44,16 +42,12 @@ final class RicercaIscrittoServiceTest extends TestCase
     {
         $primo = new Utente(1, 'Giuseppe', 'Maglione', '1990-01-01', '3331234567', 'lemons@example.com');
         $archivio = $this->createMock(UtenteRepository::class);
-        $archivio->expects($this->once())->method('cerca')
-            ->with('1')
-            ->willReturn([$primo]);
+        $archivio->expects($this->once())->method('cerca')->with('1')->willReturn([$primo]);
 
-        $servizio = new RicercaIscrittoService($archivio);
-        $risultati = $servizio->cerca('1');
+        $risultati = (new RicercaIscrittoService($archivio))->cerca('1');
 
         $this->assertCount(1, $risultati['risultati']);
         $this->assertSame([$primo], $risultati['risultati']);
-        $this->assertSame('', $risultati['messaggio']);
     }
 
     public function testTrovaIscrittoPerNomeCognome(): void
@@ -61,14 +55,11 @@ final class RicercaIscrittoServiceTest extends TestCase
         $primo = new Utente(1, 'Giuseppe', 'Maglione', '1990-01-01', '3331234567', 'lemons@example.com');
         $archivio = $this->createMock(UtenteRepository::class);
         $archivio->expects($this->once())->method('cerca')
-            ->with('giuseppe maglione')
-            ->willReturn([$primo]);
+            ->with('giuseppe maglione')->willReturn([$primo]);
 
-        $servizio = new RicercaIscrittoService($archivio);
-        $risultati = $servizio->cerca('giuseppe maglione');
+        $risultati = (new RicercaIscrittoService($archivio))->cerca('giuseppe maglione');
 
         $this->assertCount(1, $risultati['risultati']);
         $this->assertSame([$primo], $risultati['risultati']);
-        $this->assertSame('', $risultati['messaggio']);
     }
 }

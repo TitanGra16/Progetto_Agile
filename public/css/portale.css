@@ -297,6 +297,19 @@ a.feature-card:hover {
     margin: 4px 8px 4px 0;
 }
 
+.result-list {
+    display: grid;
+    gap: 14px;
+}
+
+.result-card {
+    display: block;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface-soft);
+}
+
 @media (max-width: 650px) {
     .topbar {
         flex-direction: column;

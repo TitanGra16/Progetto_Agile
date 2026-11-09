@@ -151,4 +151,27 @@ class UtenteRepository
 
         return $utenti;
     }
+    /**
+     * Restituisce lo stato dell'iscritto associato all'ID fornito.
+     * 
+     * @param int $id ID dell'iscritto.
+     * @return string|null Stato dell'iscritto o null se non trovato.
+     */
+    public function getStatoIscritto(int $id): string
+    {
+        $query = $this->connessione->prepare(
+            'SELECT COALESCE(account.stato, \'PENDING\')
+             FROM utenti
+             LEFT JOIN account ON account.id = utenti.id
+             WHERE utenti.id = ?
+             LIMIT 1'
+        );
+        $query->bind_param('i', $id);
+        $query->execute();
+        $query->bind_result($stato);
+        $query->fetch();
+        $query->close();
+
+        return $stato;
+    }
 }

@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 use Ladythelemons\Fitslot\Controller\RicercaIscrittoController;
 use Ladythelemons\Fitslot\DataModel\Utente;
+use Ladythelemons\Fitslot\Repository\UtenteRepository;
+
+
 
 require_once dirname(__DIR__) . '/bootstrap.php';
 
 $controllore = new RicercaIscrittoController();
 $pagina = $controllore->gestisciRichiesta($_SERVER['REQUEST_METHOD'], $_POST);
+
 
 ?>
 <!DOCTYPE html>
@@ -58,6 +62,7 @@ $pagina = $controllore->gestisciRichiesta($_SERVER['REQUEST_METHOD'], $_POST);
             </form>
 
             <?php if ($pagina['risultati'] !== []): ?>
+                <?php $archivio = new UtenteRepository(); ?>
                 <div class="search-results" aria-live="polite">
                     <h2>Risultati della ricerca: <?= count($pagina['risultati']) ?></h2>
                 
@@ -66,6 +71,7 @@ $pagina = $controllore->gestisciRichiesta($_SERVER['REQUEST_METHOD'], $_POST);
                             <?php if (!$utente instanceof Utente) {
                                 continue;
                             } ?>
+                            
                             <article class="result-card">
                                 <div>
                                     <h3><?= htmlspecialchars($utente->getNome(), ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars($utente->getCognome(), ENT_QUOTES, 'UTF-8') ?></h3>
@@ -78,11 +84,13 @@ $pagina = $controllore->gestisciRichiesta($_SERVER['REQUEST_METHOD'], $_POST);
                                     <div>
                                         <dt>Recapito: <?= htmlspecialchars($utente->getRecapito(), ENT_QUOTES, 'UTF-8') ?></dt>                                        
                                     </div>
-                                    <?php if ($utente->getEmail() !== null): ?>
-                                        <div>
-                                            <dt>Email: <?= htmlspecialchars($utente->getEmail(), ENT_QUOTES, 'UTF-8') ?></dt>                                            
-                                        </div>
-                                    <?php endif; ?>
+                                    <div>
+                                        <dt>Email: <?= htmlspecialchars($utente->getEmail(), ENT_QUOTES, 'UTF-8') ?></dt>                                            
+                                    </div>
+                                    <div>
+                                        <?php $stato = $archivio->getStatoIscritto((int) $utente->getId()); ?>
+                                        <dt>Stato iscrizione: <?= htmlspecialchars($stato, ENT_QUOTES, 'UTF-8') ?></dt>
+                                    </div>
                                 </dl>
                             </article>
                         <?php endforeach; ?>

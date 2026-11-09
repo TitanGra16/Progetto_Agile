@@ -26,6 +26,13 @@ final class UtenteRepositoryTest extends TestCase
                 UNIQUE KEY email_unica (email)
             ) ENGINE=InnoDB
         ');
+        $this->connessione->query('
+            CREATE TEMPORARY TABLE account (
+                id BIGINT UNSIGNED PRIMARY KEY,
+                password_hash VARCHAR(255) NULL,
+                stato ENUM("PENDING", "ACTIVE") NOT NULL DEFAULT "PENDING"
+            ) ENGINE=InnoDB
+        ');
         $this->connessione->begin_transaction();
         $this->archivio = new UtenteRepository($this->connessione);
     }
@@ -39,6 +46,18 @@ final class UtenteRepositoryTest extends TestCase
     private function utente(string $nome = 'Anna', string $email = 'anna@example.test'): Utente
     {
         return new Utente(null, $nome, "D'Angelo", '2000-02-29', 'Recapito di prova', $email);
+    }
+
+    private function salvaUtente(string $nome, string $cognome, string $email): int
+    {
+        return $this->archivio->salva(new Utente(
+            null,
+            $nome,
+            $cognome,
+            '2000-02-29',
+            'Recapito di prova',
+            $email
+        ));
     }
 
     public function testSalvaUtente(): void
@@ -77,5 +96,61 @@ final class UtenteRepositoryTest extends TestCase
 
         $this->assertTrue($this->archivio->esistePotenzialeDuplicato($nome, "D'Angelo", '2000-02-29'));
         $this->assertFalse($this->archivio->esistePotenzialeDuplicato("' OR 1=1 -- ", "D'Angelo", '2000-02-29'));
+    }
+
+    public function testCercaPerNomeCognomeNomeCompletoECodice(): void
+    {
+        $idPrimo = $this->salvaUtente('Marco', 'Bianchi', 'marco.bianchi@example.test');
+        $idSecondo = $this->salvaUtente('Marco', 'Rossi', 'marco.rossi@example.test');
+
+        $perNome = $this->archivio->cerca('Marco');
+        $this->assertCount(2, $perNome);
+
+        $perCognome = $this->archivio->cerca('Bianchi');
+        $this->assertCount(1, $perCognome);
+        $this->assertSame($idPrimo, $perCognome[0]->getId());
+
+        $perNomeCompleto = $this->archivio->cerca('Marco Rossi');
+        $this->assertCount(1, $perNomeCompleto);
+        $this->assertSame($idSecondo, $perNomeCompleto[0]->getId());
+
+        $perCodice = $this->archivio->cerca((string) $idPrimo);
+        $this->assertCount(1, $perCodice);
+        $this->assertSame($idPrimo, $perCodice[0]->getId());
+    }
+
+    public function testCercaDistingueGliAccenti(): void
+    {
+        $idConAccento = $this->salvaUtente('Mò', 'Rossi', 'mo.rossi@example.test');
+        $this->salvaUtente('Mo', 'Bianchi', 'mo.bianchi@example.test');
+
+        $risultati = $this->archivio->cerca('Mò');
+
+        $this->assertCount(1, $risultati);
+        $this->assertSame($idConAccento, $risultati[0]->getId());
+    }
+
+    public function testCercaRestituisceArrayVuotoSeNonTrova(): void
+    {
+        $this->assertSame([], $this->archivio->cerca('Inesistente'));
+    }
+
+    public function testRestituisceLoStatoDellAccount(): void
+    {
+        $id = $this->archivio->salva($this->utente(email: 'stato@example.test'));
+        $query = $this->connessione->prepare('INSERT INTO account (id, stato) VALUES (?, ?)');
+        $stato = 'ACTIVE';
+        $query->bind_param('is', $id, $stato);
+        $query->execute();
+        $query->close();
+
+        $this->assertSame('ACTIVE', $this->archivio->getStatoIscritto($id));
+    }
+
+    public function testRestituiscePendingPerAccountAssente(): void
+    {
+        $id = $this->archivio->salva($this->utente(email: 'senza-account@example.test'));
+
+        $this->assertSame('PENDING', $this->archivio->getStatoIscritto($id));
     }
 }

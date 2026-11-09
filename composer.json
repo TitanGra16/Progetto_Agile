@@ -20,6 +20,7 @@
     "scripts": {
         "test": "@php vendor/phpunit/phpunit/phpunit",
         "test:unit": "@php vendor/phpunit/phpunit/phpunit --testsuite Unit",
+        "test:integration": "@php vendor/phpunit/phpunit/phpunit --testsuite Integration",
         "db:setup": "@php scripts/db-setup.php",
         "start": "@php -S 127.0.0.1:8000 -t public"
     }
