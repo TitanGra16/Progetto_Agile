@@ -34,7 +34,12 @@ class AutenticazioneService{
         $account = $this->repository->trovaPerEmail($email);
 
         // Se l'account non esiste, il login fallisce e se la password non corrisponde, il login fallisce
-        if ($account === null || !$this->verificaPassword($password, $account['password_hash'])) {
+        if (
+            $account === null
+            || ($account['stato'] ?? null) !== 'ACTIVE'
+            || empty($account['password_hash'])
+            || !$this->verificaPassword($password, $account['password_hash'])
+        ) {
             return null;
         }
 

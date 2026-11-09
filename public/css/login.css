@@ -228,6 +228,22 @@ body {
     font-weight: bold;
 }
 
+.activation-help {
+    margin-top: 12px;
+    color: #bcbcbc;
+    font-size: 13px;
+}
+
+.activation-help a {
+    color: #ff741a;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.activation-help a:hover {
+    color: #ff8c3a;
+}
+
 /* Messaggi di errore */
 
 .error-message {

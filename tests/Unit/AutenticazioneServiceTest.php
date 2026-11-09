@@ -47,7 +47,8 @@ final class AutenticazioneServiceTest extends TestCase{
             ->with($email)
             ->willReturn([
                 'id' => 5,
-                'password_hash' => $hash
+                'password_hash' => $hash,
+                'stato' => 'ACTIVE'
             ]);
 
         // Creiamo il Service usando il Repository simulato
@@ -95,7 +96,8 @@ final class AutenticazioneServiceTest extends TestCase{
             ->with($email)
             ->willReturn([
                 'id' => 5,
-                'password_hash' => $hash
+                'password_hash' => $hash,
+                'stato' => 'ACTIVE'
             ]);
 
         $servizio = new AutenticazioneService($repository);
@@ -107,6 +109,20 @@ final class AutenticazioneServiceTest extends TestCase{
         );
 
         $this->assertNull($risultato);
+    }
+
+    public function testAccountInAttesaNonPuoAccedere(): void
+    {
+        $repository = $this->createStub(AccountRepository::class);
+        $repository->method('trovaPerEmail')->willReturn([
+            'id' => 5,
+            'password_hash' => null,
+            'stato' => 'PENDING',
+        ]);
+
+        $servizio = new AutenticazioneService($repository);
+
+        $this->assertNull($servizio->verificaCredenziali('test@example.test', 'Password123!'));
     }
 }
 

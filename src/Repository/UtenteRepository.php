@@ -94,4 +94,15 @@ class UtenteRepository
 
         return $risultato->num_rows > 0;
     }
+
+    public function trovaPerEmail(string $email): ?array
+    {
+        $email = $this->connessione->real_escape_string($email);
+        $risultato = $this->connessione->query(
+            'SELECT id, email FROM utenti WHERE email = "' . $email . '" LIMIT 1'
+        );
+
+        $utente = $risultato->fetch_assoc();
+        return $utente ?: null;
+    }
 }
