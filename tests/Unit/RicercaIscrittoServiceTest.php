@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 final class RicercaIscrittoServiceTest extends TestCase
 {
-    public function testTrovaIscrittoEsistente(): void
+    public function testTrovaDueIscrittiCognome(): void
     {
         $primo = new Utente(1, 'Giuseppe', 'Maglione', '1990-01-01', '3331234567', 'lemons@example.com');
         $secondo = new Utente(2, 'Francesco', 'Maglione', '1988-05-10', '3456789291', 'telavivapproved@example.com');
@@ -38,5 +38,37 @@ final class RicercaIscrittoServiceTest extends TestCase
 
         $this->assertSame('Iscritto non trovato', $risultato['messaggio']);
         $this->assertSame([], $risultato['risultati']);
+    }
+
+    public function testTrovaIscrittoPerID(): void
+    {
+        $primo = new Utente(1, 'Giuseppe', 'Maglione', '1990-01-01', '3331234567', 'lemons@example.com');
+        $archivio = $this->createMock(UtenteRepository::class);
+        $archivio->expects($this->once())->method('cerca')
+            ->with('1')
+            ->willReturn([$primo]);
+
+        $servizio = new RicercaIscrittoService($archivio);
+        $risultati = $servizio->cerca('1');
+
+        $this->assertCount(1, $risultati['risultati']);
+        $this->assertSame([$primo], $risultati['risultati']);
+        $this->assertSame('', $risultati['messaggio']);
+    }
+
+    public function testTrovaIscrittoPerNomeCognome(): void
+    {
+        $primo = new Utente(1, 'Giuseppe', 'Maglione', '1990-01-01', '3331234567', 'lemons@example.com');
+        $archivio = $this->createMock(UtenteRepository::class);
+        $archivio->expects($this->once())->method('cerca')
+            ->with('giuseppe maglione')
+            ->willReturn([$primo]);
+
+        $servizio = new RicercaIscrittoService($archivio);
+        $risultati = $servizio->cerca('giuseppe maglione');
+
+        $this->assertCount(1, $risultati['risultati']);
+        $this->assertSame([$primo], $risultati['risultati']);
+        $this->assertSame('', $risultati['messaggio']);
     }
 }
