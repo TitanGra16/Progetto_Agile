@@ -3,10 +3,7 @@ INSERT INTO account (id, password_hash, stato)
 SELECT
     utenti.id,
     NULL,
-    CASE
-        WHEN utenti.email = 'anna.rossi@example.test' THEN 'ACTIVE'
-        ELSE 'PENDING'
-    END
+    'PENDING'
 FROM utenti
 WHERE utenti.email IN (
     'anna.rossi@example.test',
