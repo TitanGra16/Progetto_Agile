@@ -116,11 +116,12 @@ class UtenteRepository
             $codice = (int) $termine;
         }
 
+        // La ricerca distingue gli accenti ma non distingue maiuscole e minuscole.
         $query = $this->connessione->prepare(
             'SELECT id, nome, cognome, data_nascita, recapito, email
              FROM utenti
-             WHERE nome LIKE ?
-                OR cognome LIKE ?
+            WHERE nome COLLATE utf8mb4_0900_as_ci LIKE ?
+               OR cognome COLLATE utf8mb4_0900_as_ci LIKE ?
                 OR id = ?
             ORDER BY cognome, nome, id'
         );

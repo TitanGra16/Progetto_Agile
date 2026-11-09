@@ -45,12 +45,12 @@ $autenticato = $sessione->getIdUtente() !== null;
                     <p>Inserisci i dati anagrafici per creare un nuovo iscritto.</p>
                     <span class="card-link">Apri registrazione →</span>
                 </a>
-                <article class="feature-card unavailable" aria-label="Ricerca iscritti: non ancora integrata">
+                <a class="feature-card" href="ricerca-iscritto.php">
                     <span class="feature-tag">UE-02</span>
                     <h3>Cerca iscritto</h3>
-                    <p>La ricerca non è ancora disponibile nella versione di Main analizzata.</p>
-                    <span class="card-link">In attesa di integrazione</span>
-                </article>
+                    <p>Cerca un iscritto per nome, cognome o codice.</p>
+                    <span class="card-link">Ricerca Iscritto →</span>
+                </a>
                 <a class="feature-card" href="<?= $autenticato ? 'homepage.php' : 'login.php' ?>">
                     <span class="feature-tag">UE-03</span>
                     <h3><?= $autenticato ? 'Area personale' : 'Login' ?></h3>
