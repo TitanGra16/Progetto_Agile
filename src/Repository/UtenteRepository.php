@@ -94,9 +94,20 @@ class UtenteRepository
 
         return $risultato->num_rows > 0;
     }
-
-    public function cerca(string $termine): array
+    
+    public function trovaPerEmail(string $email): ?array
     {
+        $email = $this->connessione->real_escape_string($email);
+        $risultato = $this->connessione->query(
+            'SELECT id, email FROM utenti WHERE email = "' . $email . '" LIMIT 1'
+        );
+
+        $utente = $risultato->fetch_assoc();
+
+        return $utente ?: null;
+    }
+
+    public function cerca(string $termine): array {
         // Rimuove eventuali spazi bianchi all'inizio e alla fine del termine di ricerca
         $termine = trim($termine);
         $termineRicerca ='%' . $termine . '%';

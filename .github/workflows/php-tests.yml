@@ -1,35 +1,41 @@
-name: FitSlot - PHP Tests
+  name: FitSlot - PHP Tests
 
-on:
-  push:
-    branches: [Main]
-  pull_request:
-    branches: [Main]
+  on:
+    push:
+      branches:
+        - Main
+        - 'feature/**'
+        - 'chore/**'
+    pull_request:
+      branches:
+        - Main
+    workflow_dispatch:
 
-permissions:
-  contents: read
+  permissions:
+    contents: read
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
+  jobs:
+    test:
+      name: PHP 8.4 - Unit tests
+      runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v7
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: mysqli, mbstring, dom, xml, xmlwriter
-          tools: composer:v2
-          coverage: none
+        - name: Setup PHP
+          uses: shivammathur/setup-php@v2
+          with:
+            php-version: '8.4'
+            extensions: mysqli, mbstring, dom, xml, xmlwriter, zip
+            tools: composer:v2
+            coverage: none
 
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist
+        - name: Install dependencies
+          run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Validate Composer
-        run: composer validate --strict --no-check-publish
+        - name: Validate Composer
+          run: composer validate --strict --no-check-publish
 
-      - name: Run unit tests
-        run: composer test:unit
+        - name: Run unit tests
+          run: composer test:unit

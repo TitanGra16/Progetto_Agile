@@ -1,0 +1,389 @@
+/* Impostazioni generali */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #101113;
+    color: #ffffff;
+}
+
+/* Pagina con sfondo palestra */
+
+.login-page {
+    min-height: 100vh;
+    min-height: 100svh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 30px 20px;
+
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.72),
+            rgba(0, 0, 0, 0.80)),
+        url("https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1920&q=85");
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Riquadro principale */
+
+.login-card {
+    width: 100%;
+    max-width: 620px;
+
+    padding: 50px 55px;
+
+    background: rgba(17, 18, 20, 0.94);
+
+    border: 1px solid rgba(255, 115, 20, 0.30);
+    border-radius: 40px;
+
+    box-shadow:
+        0 20px 70px rgba(0, 0, 0, 0.6),
+        0 0 35px rgba(255, 115, 20, 0.06);
+
+    text-align: center;
+}
+
+/* Logo e nome FitSlot */
+
+.brand-icon {
+    width: 85px;
+    height: 60px;
+    color: #ff741a;
+}
+
+.brand h1 {
+    font-size: clamp(48px, 9vw, 68px);
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: -2px;
+
+    margin: 5px 0 8px;
+}
+
+.slogan {
+    font-size: 19px;
+    font-weight: bold;
+    font-style: italic;
+    color: #d0d0d0;
+}
+
+.slogan span {
+    color: #ff741a;
+}
+
+/* Titolo del login */
+
+.login-heading {
+    margin: 38px 0 32px;
+}
+
+.login-heading h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.login-heading p {
+    color: #bbbbbb;
+    font-size: 16px;
+}
+
+/* Form */
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.input-group {
+    position: relative;
+    width: 100%;
+}
+
+/* Campi email e password */
+
+.input-group input {
+    width: 100%;
+    height: 64px;
+
+    padding: 0 58px;
+
+    background-color: #292a2c;
+    color: #ffffff;
+
+    border: 1px solid #414143;
+    border-radius: 35px;
+
+    font-size: 16px;
+    outline: none;
+
+    transition: border-color 0.2s;
+}
+
+.input-group input::placeholder {
+    color: #bcbcbc;
+}
+
+.input-group input:focus {
+    border-color: #ff741a;
+}
+
+/* Icone dentro i campi */
+
+.field-icon {
+    position: absolute;
+    left: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+
+    color: #bcbcbc;
+    pointer-events: none;
+}
+
+.field-icon svg,
+.toggle-password svg {
+    width: 23px;
+    height: 23px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Pulsante mostra password */
+
+.toggle-password {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    background: transparent;
+    border: none;
+
+    color: #bcbcbc;
+    cursor: pointer;
+}
+
+.toggle-password:hover {
+    color: #ff741a;
+}
+
+/* Pulsante di accesso */
+
+.login-button {
+    height: 68px;
+    margin-top: 12px;
+
+    background-color: #ff741a;
+    color: #111111;
+
+    border: none;
+    border-radius: 40px;
+
+    font-size: 23px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s,
+        transform 0.2s;
+}
+
+.login-button:hover {
+    background-color: #ff8c3a;
+    transform: translateY(-2px);
+}
+
+/* Testo registrazione */
+
+.register-text {
+    margin-top: 32px;
+    font-size: 15px;
+    color: #bcbcbc;
+}
+
+.register-highlight {
+    color: #ff741a;
+    font-weight: bold;
+}
+
+.activation-help {
+    margin-top: 12px;
+    color: #bcbcbc;
+    font-size: 13px;
+}
+
+.activation-help a {
+    color: #ff741a;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.activation-help a:hover {
+    color: #ff8c3a;
+}
+
+/* Messaggi di errore */
+
+.error-message {
+    background-color: rgba(230, 70, 70, 0.12);
+    color: #ff9999;
+
+    border: 1px solid #a74444;
+    border-radius: 15px;
+
+    padding: 14px;
+    margin-bottom: 22px;
+    font-size: 14px;
+}
+
+/* Etichette accessibili */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Adattamento agli schermi piccoli */
+
+@media (max-width: 600px) {
+
+    .login-card {
+        padding: 35px 24px;
+        border-radius: 28px;
+    }
+
+    .login-heading h2 {
+        font-size: 23px;
+    }
+
+    .slogan {
+        font-size: 15px;
+    }
+
+    .input-group input {
+        height: 58px;
+    }
+
+    .login-button {
+        height: 60px;
+    }
+}
+
+/* VERSIONE PIÙ COMPATTA DEL LOGIN */
+
+.login-page {
+    padding: 16px;
+}
+
+.login-card {
+    max-width: 460px;
+    padding: 24px 32px;
+    border-radius: 28px;
+}
+
+/* Logo più piccolo */
+
+.brand-icon {
+    width: 58px;
+    height: 38px;
+}
+
+.brand h1 {
+    font-size: 46px;
+    margin: 0 0 4px;
+}
+
+.slogan {
+    font-size: 14px;
+}
+
+/* Titolo più compatto */
+
+.login-heading {
+    margin: 20px 0 18px;
+}
+
+.login-heading h2 {
+    font-size: 22px;
+    margin-bottom: 6px;
+}
+
+.login-heading p {
+    font-size: 14px;
+}
+
+/* Form più compatto */
+
+.login-form {
+    gap: 12px;
+}
+
+.input-group input {
+    height: 48px;
+    font-size: 14px;
+}
+
+/* Pulsante Accedi */
+
+.login-button {
+    height: 52px;
+    margin-top: 4px;
+    font-size: 18px;
+}
+
+/* Registrazione */
+
+.register-text {
+    margin-top: 18px;
+    font-size: 13px;
+}
+
+/* Adattamento agli smartphone */
+
+@media (max-width: 600px) {
+    .login-card {
+        padding: 24px 20px;
+    }
+
+    .brand h1 {
+        font-size: 42px;
+    }
+
+    .login-heading h2 {
+        font-size: 21px;
+    }
+
+    .input-group input {
+        height: 48px;
+    }
+
+    .login-button {
+        height: 52px;
+    }
+}
