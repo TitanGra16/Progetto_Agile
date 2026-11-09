@@ -106,7 +106,13 @@ class UtenteRepository
 
         return $utente ?: null;
     }
-
+    /**
+     * Cerca gli utenti che corrispondono al termine di ricerca.
+     * @param string $termine Termine di ricerca (nome, cognome o codice).
+     * @return Utente[] Array di oggetti Utente corrispondenti al termine di ricerca.
+     * 
+     * @throws \mysqli_sql_exception Se la query fallisce.
+     */
     public function cerca(string $termine): array {
         // Rimuove eventuali spazi bianchi all'inizio e alla fine del termine di ricerca
         $termine = trim($termine);
@@ -122,10 +128,11 @@ class UtenteRepository
              FROM utenti
             WHERE nome COLLATE utf8mb4_0900_as_ci LIKE ?
                OR cognome COLLATE utf8mb4_0900_as_ci LIKE ?
+               OR CONCAT(nome, " ", cognome) COLLATE utf8mb4_0900_as_ci LIKE ?
                 OR id = ?
             ORDER BY cognome, nome, id'
         );
-        $query->bind_param('ssi', $termineRicerca, $termineRicerca, $codice);
+        $query->bind_param('sssi', $termineRicerca, $termineRicerca, $termineRicerca, $codice);
         $query->execute();
         $query->bind_result($id, $nome, $cognome, $dataNascita, $recapito, $email);
 
