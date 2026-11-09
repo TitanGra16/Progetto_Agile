@@ -94,7 +94,7 @@ class UtenteRepository
 
         return $risultato->num_rows > 0;
     }
-
+    
     public function trovaPerEmail(string $email): ?array
     {
         $email = $this->connessione->real_escape_string($email);
@@ -103,6 +103,75 @@ class UtenteRepository
         );
 
         $utente = $risultato->fetch_assoc();
+
         return $utente ?: null;
+    }
+    /**
+     * Cerca gli utenti che corrispondono al termine di ricerca.
+     * @param string $termine Termine di ricerca (nome, cognome o codice).
+     * @return Utente[] Array di oggetti Utente corrispondenti al termine di ricerca.
+     * 
+     * @throws \mysqli_sql_exception Se la query fallisce.
+     */
+    public function cerca(string $termine): array {
+        // Rimuove eventuali spazi bianchi all'inizio e alla fine del termine di ricerca
+        $termine = trim($termine);
+        $termineRicerca ='%' . $termine . '%';
+        $codice = 0;
+        if (ctype_digit($termine)) {
+            $codice = (int) $termine;
+        }
+
+        // La ricerca distingue gli accenti ma non distingue maiuscole e minuscole.
+        $query = $this->connessione->prepare(
+            'SELECT id, nome, cognome, data_nascita, recapito, email
+             FROM utenti
+            WHERE nome COLLATE utf8mb4_0900_as_ci LIKE ?
+               OR cognome COLLATE utf8mb4_0900_as_ci LIKE ?
+               OR CONCAT(nome, " ", cognome) COLLATE utf8mb4_0900_as_ci LIKE ?
+                OR id = ?
+            ORDER BY cognome, nome, id'
+        );
+        $query->bind_param('sssi', $termineRicerca, $termineRicerca, $termineRicerca, $codice);
+        $query->execute();
+        $query->bind_result($id, $nome, $cognome, $dataNascita, $recapito, $email);
+
+        $utenti = [];
+        while ($query->fetch()) {
+            $utenti[] = new Utente(
+                (int) $id,
+                $nome,
+                $cognome,
+                $dataNascita,
+                $recapito,
+                $email
+            );
+        }
+        $query->close();
+
+        return $utenti;
+    }
+    /**
+     * Restituisce lo stato dell'iscritto associato all'ID fornito.
+     * 
+     * @param int $id ID dell'iscritto.
+     * @return string|null Stato dell'iscritto o null se non trovato.
+     */
+    public function getStatoIscritto(int $id): string
+    {
+        $query = $this->connessione->prepare(
+            'SELECT COALESCE(account.stato, \'PENDING\')
+             FROM utenti
+             LEFT JOIN account ON account.id = utenti.id
+             WHERE utenti.id = ?
+             LIMIT 1'
+        );
+        $query->bind_param('i', $id);
+        $query->execute();
+        $query->bind_result($stato);
+        $query->fetch();
+        $query->close();
+
+        return $stato;
     }
 }

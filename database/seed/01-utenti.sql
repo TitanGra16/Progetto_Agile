@@ -2,7 +2,8 @@ INSERT INTO utenti (nome, cognome, data_nascita, email, recapito)
 VALUES
     ('Anna', 'Rossi', '1995-04-12', 'anna.rossi@example.test', '3331234567'),
     ('Marco', 'Bianchi', '1988-09-25', 'marco.bianchi@example.test', '3337654321'),
-    ('Giulia', 'Verdi', '2001-01-30', 'giulia.verdi@example.test', '1234567890')
+    ('Giulia', 'Verdi', '2001-01-30', 'giulia.verdi@example.test', '1234567890'),
+    ('Giuseppe', 'Rossi', '2004-04-16', 'giuseppe.rossi@example.test', '3356298462')
 ON DUPLICATE KEY UPDATE
     nome = VALUES(nome),
     cognome = VALUES(cognome),
