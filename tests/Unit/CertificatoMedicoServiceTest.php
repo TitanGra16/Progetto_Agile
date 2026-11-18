@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Ladythelemons\Fitslot\Tests\Unit;
 
 use DateTimeImmutable;
-use InvalidArgumentException;
 use Ladythelemons\Fitslot\Repository\CertificatoMedicoRepository;
 use Ladythelemons\Fitslot\Service\ArchivioPdfCertificati;
 use Ladythelemons\Fitslot\Service\CertificatoMedicoService;
@@ -16,21 +15,24 @@ class CertificatoMedicoServiceTest extends TestCase
 {
     public function testScadenzaFuturaEDataOdiernaAccettate(): void
     {
-        CertificatoMedicoService::validaScadenza('2026-11-16', new DateTimeImmutable('2026-11-16'));
-        CertificatoMedicoService::validaScadenza('2026-12-01', new DateTimeImmutable('2026-11-16'));
-        $this->addToAssertionCount(2);
+        $oggi = new DateTimeImmutable('2026-11-16');
+
+        self::assertNull(CertificatoMedicoService::validaScadenza('2026-11-16', $oggi));
+        self::assertNull(CertificatoMedicoService::validaScadenza('2026-12-01', $oggi));
     }
 
     public function testScadenzaPassataRifiutata(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        CertificatoMedicoService::validaScadenza('2026-11-15', new DateTimeImmutable('2026-11-16'));
+        $errore = CertificatoMedicoService::validaScadenza('2026-11-15', new DateTimeImmutable('2026-11-16'));
+
+        self::assertSame('Il certificato è già scaduto.', $errore);
     }
 
     public function testDataImpossibileRifiutata(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        CertificatoMedicoService::validaScadenza('2026-02-30', new DateTimeImmutable('2026-01-01'));
+        $errore = CertificatoMedicoService::validaScadenza('2026-02-30', new DateTimeImmutable('2026-01-01'));
+
+        self::assertSame('Inserisci una data di scadenza valida.', $errore);
     }
 
     public function testRegistrazioneCaricaPdfEArchiviaScadenza(): void
@@ -40,36 +42,50 @@ class CertificatoMedicoServiceTest extends TestCase
         $pdf = ['name' => 'certificato.pdf'];
         $scadenza = (new DateTimeImmutable('+2 days'))->format('Y-m-d');
 
-        $repo->method('esisteUtente')->with(7)->willReturn(true);
-        $archivio->expects(self::once())->method('salva')->with($pdf)->willReturn('00000000000000000000000000000000.pdf');
-        $repo->expects(self::once())->method('salvaOaggiorna')->with(7, $scadenza, '00000000000000000000000000000000.pdf');
+        $repo->expects(self::once())->method('esisteUtente')->with(7)->willReturn(true);
+        $archivio->expects(self::once())->method('salva')->with($pdf)->willReturn('archiviato.pdf');
+        $repo->expects(self::once())->method('salvaOaggiorna')->with(7, $scadenza, 'archiviato.pdf');
 
-        (new CertificatoMedicoService($repo, $archivio))->registra(7, $scadenza, $pdf);
+        $errore = (new CertificatoMedicoService($repo, $archivio))->registra(7, $scadenza, $pdf);
+
+        self::assertNull($errore);
     }
 
     public function testNonRegistraCertificatoSeLIscrittoNonEsiste(): void
     {
-        $repo = $this->createMock(CertificatoMedicoRepository::class);
+        $repo = $this->createStub(CertificatoMedicoRepository::class);
         $archivio = $this->createMock(ArchivioPdfCertificati::class);
         $repo->method('esisteUtente')->willReturn(false);
         $archivio->expects(self::never())->method('salva');
 
-        $this->expectException(InvalidArgumentException::class);
-        (new CertificatoMedicoService($repo, $archivio))->registra(
-            7,
-            (new DateTimeImmutable('+1 day'))->format('Y-m-d'),
-            []
-        );
+        $scadenza = (new DateTimeImmutable('+1 day'))->format('Y-m-d');
+        $errore = (new CertificatoMedicoService($repo, $archivio))->registra(7, $scadenza, []);
+
+        self::assertSame('Iscritto non trovato.', $errore);
+    }
+
+    public function testNonRegistraCertificatoSeIlPdfNonVieneSalvato(): void
+    {
+        $repo = $this->createMock(CertificatoMedicoRepository::class);
+        $archivio = $this->createStub(ArchivioPdfCertificati::class);
+        $repo->method('esisteUtente')->willReturn(true);
+        $repo->expects(self::never())->method('salvaOaggiorna');
+        $archivio->method('salva')->willReturn(null);
+
+        $scadenza = (new DateTimeImmutable('+1 day'))->format('Y-m-d');
+        $errore = (new CertificatoMedicoService($repo, $archivio))->registra(7, $scadenza, []);
+
+        self::assertNotNull($errore);
     }
 
     public function testPropagaErroreSeIlSalvataggioDatabaseFallisce(): void
     {
-        $repo = $this->createMock(CertificatoMedicoRepository::class);
-        $archivio = $this->createMock(ArchivioPdfCertificati::class);
+        $repo = $this->createStub(CertificatoMedicoRepository::class);
+        $archivio = $this->createStub(ArchivioPdfCertificati::class);
         $pdf = ['name' => 'nuovo.pdf'];
         $scadenza = (new DateTimeImmutable('+1 day'))->format('Y-m-d');
         $repo->method('esisteUtente')->willReturn(true);
-        $archivio->method('salva')->willReturn('22222222222222222222222222222222.pdf');
+        $archivio->method('salva')->willReturn('archiviato.pdf');
         $repo->method('salvaOaggiorna')->willThrowException(new RuntimeException('Database offline'));
 
         $this->expectException(RuntimeException::class);

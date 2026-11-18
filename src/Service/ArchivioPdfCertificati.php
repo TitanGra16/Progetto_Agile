@@ -4,35 +4,38 @@ declare(strict_types=1);
 
 namespace Ladythelemons\Fitslot\Service;
 
-use RuntimeException;
-
-/** Conserva i PDF fuori dalla cartella public, con nomi non prevedibili. */
 class ArchivioPdfCertificati
 {
     public const DIMENSIONE_MASSIMA = 3 * 1024 * 1024; // 3 MiB
-    private string $cartella = __DIR__ . '/../../storage/certificati-medici';
+    private const CARTELLA = __DIR__ . '/../../storage/certificati-medici';
 
     /** @param array<string, mixed> $file Da $_FILES['certificato_pdf']. */
-    public function salva(array $file): string
+    public function salva(array $file): ?string
     {
-        $temporaneo = $file['tmp_name'] ?? null;
-        $dimensione = $file['size'] ?? null;
-        $fileTemporaneoValido = is_string($temporaneo) && is_file($temporaneo);
+        $temporaneo = $file['tmp_name'] ?? '';
+        $dimensione = $file['size'] ?? 0;
 
-        if (($file['error'] ?? null) !== UPLOAD_ERR_OK
-            || !is_string($temporaneo)
-            || !$fileTemporaneoValido
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
             || !is_int($dimensione)
             || $dimensione < 1
             || $dimensione > self::DIMENSIONE_MASSIMA
-            || filesize($temporaneo) !== $dimensione) {
-            throw new RuntimeException('Il caricamento del certificato non è valido.');
+            || !is_string($temporaneo)
+            || !is_uploaded_file($temporaneo)) {
+            return null;
+        }
+
+        if (file_get_contents($temporaneo, false, null, 0, 5) !== '%PDF-') {
+            return null;
+        }
+
+        if (!is_dir(self::CARTELLA)) {
+            @mkdir(self::CARTELLA, 0700, true);
         }
 
         $nomeSalvato = bin2hex(random_bytes(16)) . '.pdf';
-        $destinazione = $this->cartella . DIRECTORY_SEPARATOR . $nomeSalvato;
-        if (!move_uploaded_file($file['tmp_name'], $destinazione)) {
-            throw new RuntimeException('Non è stato possibile conservare il PDF.');
+        $destinazione = self::CARTELLA . '/' . $nomeSalvato;
+        if (!@move_uploaded_file($temporaneo, $destinazione)) {
+            return null;
         }
         @chmod($destinazione, 0600);
 
