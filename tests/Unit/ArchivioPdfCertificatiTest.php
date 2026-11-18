@@ -18,13 +18,20 @@ class ArchivioPdfCertificatiTest extends TestCase
         self::assertNull($nomeFile);
     }
 
-    public function testRifiutaDimensioneEccessiva(): void
+    public function testRifiutaUnFileLocale(): void
     {
         $nomeFile = (new ArchivioPdfCertificati())->salva([
             'error' => UPLOAD_ERR_OK,
-            'size' => ArchivioPdfCertificati::DIMENSIONE_MASSIMA + 1,
+            'tmp_name' => __FILE__,
         ]);
 
         self::assertNull($nomeFile);
+    }
+
+    public function testRifiutaPercorsiFuoriDallArchivio(): void
+    {
+        $archivio = new ArchivioPdfCertificati();
+
+        self::assertNull($archivio->percorso('../certificato.pdf'));
     }
 }
