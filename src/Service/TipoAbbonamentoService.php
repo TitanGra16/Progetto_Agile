@@ -7,7 +7,6 @@ namespace Ladythelemons\Fitslot\Service;
 use Ladythelemons\Fitslot\Repository\TipoAbbonamentoRepository;
 use mysqli_sql_exception;
 
-/** Regole del listino UE-08. Nessuna vendita, prenotazione o consumo crediti. */
 class TipoAbbonamentoService
 {
     public const SERVIZI = [
@@ -16,6 +15,9 @@ class TipoAbbonamentoService
         'CORSI' => 'Corsi',
     ];
 
+    private const SCONTO_STUDENTI = 20;
+    private const ERRORE_CODICE_DUPLICATO = 1062;
+
     public function __construct(private TipoAbbonamentoRepository $repository)
     {
     }
@@ -23,42 +25,48 @@ class TipoAbbonamentoService
     /** @return list<array<string,mixed>> */
     public function elenca(): array
     {
-        return array_map(fn (array $riga): array => $this->arricchisci($riga), $this->repository->elenca());
+        $piani = [];
+        foreach ($this->repository->elenca() as $piano) {
+            $piani[] = $this->aggiungiPrezzoStudenti($piano);
+        }
+
+        return $piani;
     }
 
     /** @return array<string,mixed>|null */
     public function trovaPerId(int $id): ?array
     {
         $riga = $this->repository->trovaPerId($id);
-        return $riga === null ? null : $this->arricchisci($riga);
+
+        return $riga === null ? null : $this->aggiungiPrezzoStudenti($riga);
     }
 
-    /** @param array<string,mixed> $input @return array{esito:string,messaggio:string,errori:array<string,string>,id:?int} */
     public function crea(array $input): array
     {
         $verifica = $this->valida($input);
         if ($verifica['errori'] !== []) {
             return $this->errore($verifica['errori']);
         }
+
         try {
             $id = $this->repository->crea($verifica['dati']);
-            return ['esito' => 'ok', 'messaggio' => 'Tipo di abbonamento creato.', 'errori' => [], 'id' => $id];
-        } catch (mysqli_sql_exception $e) {
-            if ($e->getCode() === 1062) {
+        } catch (mysqli_sql_exception $errore) {
+            if ($errore->getCode() === self::ERRORE_CODICE_DUPLICATO) {
                 return $this->errore(['codice' => 'Questo codice esiste già.']);
             }
-            throw $e;
+            throw $errore;
         }
+
+        return ['esito' => 'ok', 'messaggio' => 'Tipo di abbonamento creato.', 'errori' => [], 'id' => $id];
     }
 
-    /** @param array<string,mixed> $input @return array{esito:string,messaggio:string,errori:array<string,string>,id:?int} */
     public function aggiorna(int $id, array $input): array
     {
         $esistente = $id > 0 ? $this->repository->trovaPerId($id) : null;
         if ($esistente === null) {
             return $this->errore(['id' => 'Tipo di abbonamento inesistente.']);
         }
-        // Il codice del piano esistente non cambia mai durante le modifiche.
+        // L'aggiornamento usa il codice già salvato.
         $input['codice'] = $esistente['codice'];
         $verifica = $this->valida($input);
         if ($verifica['errori'] !== []) {
@@ -68,17 +76,14 @@ class TipoAbbonamentoService
         return ['esito' => 'ok', 'messaggio' => 'Tipo di abbonamento aggiornato.', 'errori' => [], 'id' => $id];
     }
 
-    /**
-     * @param array<string,mixed> $input
-     * @return array{dati:array<string,mixed>,errori:array<string,string>}
-     */
+    /** Restituisce i dati del modulo e gli eventuali errori. */
     public function valida(array $input): array
     {
         $errori = [];
-        $codice = strtoupper(trim(self::testo($input['codice'] ?? '')));
-        $nome = trim(self::testo($input['nome'] ?? ''));
-        $categoria = strtoupper(trim(self::testo($input['categoria'] ?? '')));
-        $prezzo = self::normalizzaPrezzo(self::testo($input['prezzo'] ?? ''));
+        $codice = strtoupper(self::testo($input['codice'] ?? null));
+        $nome = self::testo($input['nome'] ?? null);
+        $categoria = strtoupper(self::testo($input['categoria'] ?? null));
+        $prezzoCentesimi = self::prezzoInCentesimi(self::testo($input['prezzo'] ?? null));
 
         if (!preg_match('/^[A-Z0-9_]{2,40}$/D', $codice)) {
             $errori['codice'] = 'Usa da 2 a 40 caratteri: lettere maiuscole, cifre e underscore.';
@@ -89,32 +94,31 @@ class TipoAbbonamentoService
         if (!in_array($categoria, ['SINGOLO', 'PACCHETTO', 'TEMPO'], true)) {
             $errori['categoria'] = 'Categoria non riconosciuta.';
         }
-        if ($prezzo === null) {
+        if ($prezzoCentesimi === null) {
             $errori['prezzo'] = 'Inserisci un prezzo positivo, con massimo due decimali.';
         }
 
         $ingressi = null;
         $durata = null;
-        $ingressiInput = trim(self::testo($input['ingressi_totali'] ?? ''));
-        $durataInput = trim(self::testo($input['durata_mesi'] ?? ''));
+        $ingressiInput = self::testo($input['ingressi_totali'] ?? null);
+        $durataInput = self::testo($input['durata_mesi'] ?? null);
         if ($categoria === 'SINGOLO' || $categoria === 'PACCHETTO') {
-            $minimo = $categoria === 'SINGOLO' ? 1 : 2;
-            if (!ctype_digit($ingressiInput) || (int) $ingressiInput < $minimo || (int) $ingressiInput > 1000
-                || ($categoria === 'SINGOLO' && (int) $ingressiInput !== 1)) {
-                $errori['ingressi_totali'] = $categoria === 'SINGOLO'
+            $singolo = $categoria === 'SINGOLO';
+            $ingressi = $singolo
+                ? self::interoTra($ingressiInput, 1, 1)
+                : self::interoTra($ingressiInput, 2, 1000);
+            if ($ingressi === null) {
+                $errori['ingressi_totali'] = $singolo
                     ? 'L’ingresso singolo deve avere esattamente un credito.'
                     : 'Il pacchetto deve avere da 2 a 1000 crediti.';
-            } else {
-                $ingressi = (int) $ingressiInput;
             }
             if ($durataInput !== '') {
                 $errori['durata_mesi'] = 'I piani a ingressi non hanno scadenza temporale.';
             }
         } elseif ($categoria === 'TEMPO') {
-            if (!ctype_digit($durataInput) || (int) $durataInput < 1 || (int) $durataInput > 120) {
+            $durata = self::interoTra($durataInput, 1, 120);
+            if ($durata === null) {
                 $errori['durata_mesi'] = 'La durata deve essere da 1 a 120 mesi.';
-            } else {
-                $durata = (int) $durataInput;
             }
             if ($ingressiInput !== '') {
                 $errori['ingressi_totali'] = 'Un abbonamento illimitato non prevede crediti.';
@@ -128,7 +132,7 @@ class TipoAbbonamentoService
         $servizi = [];
         $sconosciuti = false;
         foreach ($selezionati as $servizio) {
-            if (!is_string($servizio) || !array_key_exists($servizio, self::SERVIZI)) {
+            if (!is_string($servizio) || !isset(self::SERVIZI[$servizio])) {
                 $sconosciuti = true;
                 continue;
             }
@@ -139,25 +143,23 @@ class TipoAbbonamentoService
             $errori['servizi_inclusi'] = 'Seleziona almeno un servizio valido: sala pesi, piscina o corsi.';
         }
 
-        $agevolazione = $input['agevolazione_studenti'] ?? false;
-        $agevolazione = $agevolazione === true || $agevolazione === 1 || $agevolazione === '1' || $agevolazione === 'on';
+        $valoriSpuntati = [true, 1, '1', 'on'];
+        $agevolazione = in_array($input['agevolazione_studenti'] ?? false, $valoriSpuntati, true);
+        $attivo = in_array($input['attivo'] ?? false, $valoriSpuntati, true);
         if ($agevolazione && $categoria !== 'PACCHETTO') {
             $errori['agevolazione_studenti'] = 'Lo sconto studenti vale solo sui pacchetti a ingressi.';
         }
-
-        $attivo = $input['attivo'] ?? false;
-        $attivo = $attivo === true || $attivo === 1 || $attivo === '1' || $attivo === 'on';
 
         return [
             'dati' => [
                 'codice' => $codice,
                 'nome' => $nome,
                 'categoria' => $categoria,
-                'prezzo' => $prezzo,
+                'prezzo' => $prezzoCentesimi === null ? null : self::formattaPrezzo($prezzoCentesimi),
                 'ingressi_totali' => $ingressi,
                 'durata_mesi' => $durata,
                 'servizi_inclusi' => $servizi,
-                'sconto_studenti_percentuale' => $agevolazione ? 20 : 0,
+                'sconto_studenti_percentuale' => $agevolazione ? self::SCONTO_STUDENTI : 0,
                 'studenti_dalle' => $agevolazione ? '08:00' : null,
                 'studenti_alle' => $agevolazione ? '13:30' : null,
                 'attivo' => $attivo ? 1 : 0,
@@ -166,48 +168,56 @@ class TipoAbbonamentoService
         ];
     }
 
-    /** Applica unicamente la tariffa ridotta del catalogo. Non verifica l'idoneita' del cliente. */
     public static function calcolaPrezzoStudente(string $prezzo, int $scontoPercentuale): string
     {
-        $normale = self::normalizzaPrezzo($prezzo);
-        if ($normale === null || !in_array($scontoPercentuale, [0, 20], true)) {
+        $centesimi = self::prezzoInCentesimi($prezzo);
+        if ($centesimi === null || !in_array($scontoPercentuale, [0, self::SCONTO_STUDENTI], true)) {
             throw new \InvalidArgumentException('Prezzo o sconto non valido.');
         }
-        [$euro, $centesimi] = explode('.', $normale);
-        $totaleCentesimi = (int) $euro * 100 + (int) $centesimi;
-        $ridotto = intdiv($totaleCentesimi * (100 - $scontoPercentuale) + 50, 100);
-        return sprintf('%d.%02d', intdiv($ridotto, 100), $ridotto % 100);
+
+        $ridotto = (int) round($centesimi * (100 - $scontoPercentuale) / 100);
+        return self::formattaPrezzo($ridotto);
     }
 
-    /** @param array<string,mixed> $riga @return array<string,mixed> */
-    private function arricchisci(array $riga): array
+    private function aggiungiPrezzoStudenti(array $riga): array
     {
-        $riga['prezzo_studenti'] = $riga['sconto_studenti_percentuale'] === 20
-            ? self::calcolaPrezzoStudente((string) $riga['prezzo'], 20)
+        $sconto = $riga['sconto_studenti_percentuale'];
+        $riga['prezzo_studenti'] = $sconto === self::SCONTO_STUDENTI
+            ? self::calcolaPrezzoStudente((string) $riga['prezzo'], $sconto)
             : null;
         return $riga;
     }
 
     private static function testo(mixed $valore): string
     {
-        return is_string($valore) || is_int($valore) ? (string) $valore : '';
+        return is_string($valore) || is_int($valore) ? trim((string) $valore) : '';
     }
 
-    private static function normalizzaPrezzo(string $prezzo): ?string
+    private static function interoTra(string $testo, int $minimo, int $massimo): ?int
+    {
+        if (!ctype_digit($testo)) {
+            return null;
+        }
+
+        $numero = (int) $testo;
+        return $numero >= $minimo && $numero <= $massimo ? $numero : null;
+    }
+
+    private static function prezzoInCentesimi(string $prezzo): ?int
     {
         $prezzo = str_replace(',', '.', trim($prezzo));
         if (!preg_match('/^\d{1,8}(?:\.\d{1,2})?$/D', $prezzo)) {
             return null;
         }
-        [$euro, $centesimi] = array_pad(explode('.', $prezzo, 2), 2, '');
-        $cent = (int) $euro * 100 + (int) str_pad($centesimi, 2, '0');
-        if ($cent <= 0) {
-            return null;
-        }
-        return sprintf('%d.%02d', intdiv($cent, 100), $cent % 100);
+        $centesimi = (int) round((float) $prezzo * 100);
+        return $centesimi > 0 ? $centesimi : null;
     }
 
-    /** @param array<string,string> $errori @return array{esito:string,messaggio:string,errori:array<string,string>,id:?int} */
+    private static function formattaPrezzo(int $centesimi): string
+    {
+        return number_format($centesimi / 100, 2, '.', '');
+    }
+
     private function errore(array $errori): array
     {
         return ['esito' => 'errore', 'messaggio' => 'Controlla i dati inseriti.', 'errori' => $errori, 'id' => null];
