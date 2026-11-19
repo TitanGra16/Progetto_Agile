@@ -27,3 +27,4 @@ coverage/
 .phpunit.result.cache
 /vendor/
 /.tmp/
+/storage/certificati-medici/
