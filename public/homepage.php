@@ -29,6 +29,14 @@ if ($sessione->getIdUtente() === null) {
     <p>Hai effettuato correttamente l'accesso.</p>
 
 
+    <!-- TODO(UE-04): collegare il profilo alle homepage
+         di tutti i ruoli dopo il merge della UE-04. -->
+
+    <p>
+        <a href="profilo.php">Il mio profilo</a>
+    </p>
+
+    <!--pulsante per uscire dal profilo e tornare alla pagina di login, momentaneamente in fondo alla homepage -->
     <form action="logout.php" method="POST">
         <button type="submit">Esci</button>
     </form>

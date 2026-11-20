@@ -174,4 +174,41 @@ class UtenteRepository
 
         return $stato;
     }
+    public function trovaPerId(int $id): ?array
+    {
+        $query = $this->connessione->prepare(
+            'SELECT nome, cognome, email
+             FROM utenti
+             WHERE id = ?
+             LIMIT 1'
+        );
+
+        $query->bind_param('i', $id);
+        $query->execute();
+
+        $risultato = $query->get_result();
+        $utente = $risultato->fetch_assoc();
+
+        $query->close();
+
+        return $utente ?: null;
+    }
+    
+
+    /**
+     * Aggiorna l'indirizzo email dell'utente identificato dall'ID.
+     */
+    public function aggiornaEmail(int $idUtente, string $nuovaEmail): void
+    {
+        $query = $this->connessione->prepare(
+            'UPDATE utenti
+             SET email = ?
+             WHERE id = ?'
+        );
+
+        $query->bind_param('si', $nuovaEmail, $idUtente);
+        $query->execute();
+        $query->close();
+    }
+
 }
