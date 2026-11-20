@@ -41,6 +41,40 @@ class AccountRepository
         return $account;
     }
 
+    /**
+     * Restituisce i ruoli assegnati a un account.
+     *
+     * @return string[] Nomi dei ruoli assegnati all'account.
+     */
+    public function trovaRuoli(int $idAccount): array
+    {
+        $connessione = $this->connessione ?? Database::connetti();
+
+        $query = $connessione->prepare(
+            'SELECT ruoli.nome
+             FROM account_ruoli
+             JOIN ruoli ON ruoli.id = account_ruoli.ruolo_id
+             WHERE account_ruoli.account_id = ?
+             ORDER BY ruoli.id'
+        );
+        $query->bind_param('i', $idAccount);
+        $query->execute();
+        $query->bind_result($nomeRuolo);
+
+        $ruoli = [];
+        while ($query->fetch()) {
+            $ruoli[] = $nomeRuolo;
+        }
+
+        $query->close();
+
+        if ($this->connessione === null) {
+            $connessione->close();
+        }
+
+        return $ruoli;
+    }
+
     public function creaInAttesa(
         int $idUtente,
         string $tokenHash,
