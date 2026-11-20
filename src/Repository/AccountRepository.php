@@ -108,4 +108,55 @@ class AccountRepository
             $connessione->close();
         }
     }
+
+public function trovaPerId(int $idUtente): ?array
+{
+    $connessione = $this->connessione ?? Database::connetti();
+
+    $query = $connessione->prepare(
+        'SELECT id, password_hash, stato
+         FROM account
+         WHERE id = ?
+         LIMIT 1'
+    );
+
+    $query->bind_param('i', $idUtente);
+    $query->execute();
+
+    $risultato = $query->get_result();
+    $account = $risultato->fetch_assoc();
+
+    $query->close();
+
+    if ($this->connessione === null) {
+        $connessione->close();
+    }
+
+    return $account ?: null;
+}
+
+
+public function aggiornaPassword(
+    int $idUtente,
+    string $nuovoHash
+): void {
+    $connessione = $this->connessione ?? Database::connetti();
+
+    $query = $connessione->prepare(
+        "UPDATE account
+         SET password_hash = ?
+         WHERE id = ?
+         AND stato = 'ACTIVE'"
+    );
+
+    $query->bind_param('si', $nuovoHash, $idUtente);
+    $query->execute();
+    $query->close();
+
+    if ($this->connessione === null) {
+        $connessione->close();
+    }
+}
+
+
 }
