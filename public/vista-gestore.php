@@ -1,7 +1,24 @@
 <?php
 
 declare(strict_types=1);
+
+use Ladythelemons\Fitslot\Service\AutorizzazioneService;
+use Ladythelemons\Fitslot\Service\SessioneService;
+
 require_once dirname(__DIR__) . '/bootstrap.php';
+
+$sessione = new SessioneService();
+$autorizzazione = new AutorizzazioneService();
+
+if ($sessione->getIdUtente() === null) {
+    header('Location: login.php');
+    exit;
+}
+
+if (!$autorizzazione->haAccessoA(['GESTORE'])) {
+    http_response_code(403);
+    exit('Accesso non autorizzato.');
+}
 
 ?>
 <!DOCTYPE html>
