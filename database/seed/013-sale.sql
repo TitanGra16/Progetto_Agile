@@ -10,9 +10,9 @@ VALUES
     ('Sala H', 15, '09:30:00', '14:30:00'),
     ('Sala I', 60, '10:30:00', '19:30:00'),
     ('Sala J', 55, '08:00:00', '18:00:00'),
-    ('Sala Pesi', 200, '05:00:00', '00:00:00'),
+    ('Sala Pesi', 200, '05:00:00', '23:59:59'),
     ('Piscina', 100, '08:00:00', '21:00:00'),
-    ('Sala Spinning', 20, '06:00:00', '22:00:00')
+    ('Sala Spinning', 20, '09:00:00', '19:00:00')
 ON DUPLICATE KEY UPDATE
     capienza = VALUES(capienza),
     inizio_occupazione = VALUES(inizio_occupazione),

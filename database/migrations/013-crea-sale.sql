@@ -4,6 +4,6 @@ CREATE TABLE sale (
     capienza INT UNSIGNED NOT NULL,
     inizio_occupazione TIME NOT NULL,
     fine_occupazione TIME NOT NULL,
-    CHECK capienza > 0,
+    CHECK (capienza > 0),
     UNIQUE KEY nome_unico (nome)
-)
+) ENGINE=InnoDB;

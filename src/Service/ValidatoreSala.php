@@ -21,7 +21,15 @@ class ValidatoreSala
             'fine_occupazione' => 8,
         ];
         foreach ($campiObbligatori as $campo => $lunghezzaMassima) {
-            if (!isset($sala[$campo]) || !is_string($sala[$campo]) || trim($sala[$campo]) === '') {
+            if (!array_key_exists($campo, $sala)) {
+                return false;
+            }
+
+            if ($campo === 'capienza') {
+                continue;
+            }
+
+            if (!is_string($sala[$campo]) || trim($sala[$campo]) === '') {
                 return false;
             }
             if (mb_strlen($sala[$campo]) > $lunghezzaMassima) {
@@ -29,15 +37,20 @@ class ValidatoreSala
             }
         }
 
-        if (!ctype_digit($sala['capienza']) || (int) $sala['capienza'] <= 0) {
+        if  (!(is_int($sala['capienza']) 
+            || (is_string($sala['capienza']) 
+            && ctype_digit($sala['capienza'])))
+            || (int) $sala['capienza'] <= 0
+        ) {
             return false;
         }
 
-        if (!$this->validaOrario($sala['inizio_occupazione']) || !$this->validaOrario($sala['fine_occupazione'])) {
+        if (!$this->validaOrario($sala['inizio_occupazione']) 
+            || !$this->validaOrario($sala['fine_occupazione'])) {
             return false;
         }
 
-        if ($sala['inizio_occupazione'] >= $sala['fine_occupazione']) {
+        if ($this->orarioInSecondi($sala['inizio_occupazione']) >= $this->orarioInSecondi($sala['fine_occupazione'])) {
             return false;
         }
 
@@ -45,7 +58,7 @@ class ValidatoreSala
     }
 
     /**
-     * Controlla se una stringa rappresenta un orario valido nel formato HH:MM:SS.
+     * Controlla se una stringa rappresenta un orario valido nel formato HH:MM oppure HH:MM:SS.
      *
      * @param string $orario Orario da validare.
      * @return bool True se l'orario è valido, false altrimenti.
@@ -53,19 +66,34 @@ class ValidatoreSala
     private function validaOrario(string $orario): bool
     {
         $partiOrario = explode(':', $orario);
-        if (count($partiOrario) !== 3) {
-            return false;
-        }
-        [$ore, $minuti, $secondi] = $partiOrario;
-
-        if (!ctype_digit($ore) || !ctype_digit($minuti) || !ctype_digit($secondi)) {
+        if (count($partiOrario) !== 2 && count($partiOrario) !== 3) {
             return false;
         }
 
-        $ore = (int) $ore;
-        $minuti = (int) $minuti;
-        $secondi = (int) $secondi;
+        if (!ctype_digit($partiOrario[0]) || !ctype_digit($partiOrario[1])) {
+            return false;
+        }
+
+        $ore = (int) $partiOrario[0];
+        $minuti = (int) $partiOrario[1];
+        $secondi = 0;
+        if (isset($partiOrario[2])) {
+            if (!ctype_digit($partiOrario[2])) {
+                return false;
+            }
+            $secondi = (int) $partiOrario[2];
+        }
 
         return ($ore >= 0 && $ore < 24) && ($minuti >= 0 && $minuti < 60) && ($secondi >= 0 && $secondi < 60);
+    }
+
+    private function orarioInSecondi(string $orario): int
+    {
+        $parti = array_map('intval', explode(':', $orario));
+        $secondi = ($parti[0] * 3600) + ($parti[1] * 60);
+        if (isset($parti[2])) {
+            $secondi += $parti[2];
+        }
+        return $secondi;
     }
 }
