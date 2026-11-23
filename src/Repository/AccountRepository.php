@@ -94,6 +94,17 @@ class AccountRepository
         $query->execute();
         $query->close();
 
+        // Ogni account creato dal flusso di attivazione parte come iscritto.
+        $queryRuolo = $connessione->prepare(
+            "INSERT IGNORE INTO account_ruoli (account_id, ruolo_id)
+             SELECT ?, ruoli.id
+             FROM ruoli
+             WHERE ruoli.nome = 'ISCRITTO'"
+        );
+        $queryRuolo->bind_param('i', $idUtente);
+        $queryRuolo->execute();
+        $queryRuolo->close();
+
         if ($this->connessione === null) {
             $connessione->close();
         }

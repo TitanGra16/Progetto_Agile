@@ -5,10 +5,24 @@ declare(strict_types=1);
 use Ladythelemons\Fitslot\Controller\RicercaIscrittoController;
 use Ladythelemons\Fitslot\DataModel\Utente;
 use Ladythelemons\Fitslot\Repository\UtenteRepository;
+use Ladythelemons\Fitslot\Service\AutorizzazioneService;
+use Ladythelemons\Fitslot\Service\SessioneService;
 
 
 
 require_once dirname(__DIR__) . '/bootstrap.php';
+session_start(['cookie_httponly' => true, 'cookie_samesite' => 'Lax']);
+
+$sessioneUtente = new SessioneService();
+if ($sessioneUtente->getIdUtente() === null) {
+    header('Location: login.php');
+    exit;
+}
+
+if (!(new AutorizzazioneService())->haAccessoA(['RECEPTION'])) {
+    http_response_code(403);
+    exit('Accesso non autorizzato.');
+}
 
 $controllore = new RicercaIscrittoController();
 $pagina = $controllore->gestisciRichiesta($_SERVER['REQUEST_METHOD'], $_POST);
