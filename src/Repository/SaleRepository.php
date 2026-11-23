@@ -74,4 +74,33 @@ class SaleRepository
         // Restituisce true se il conteggio è maggiore di 0, altrimenti false
         return (bool) $result['count'];
     }
+
+    /**
+     * Recupera tutte le sale ordinate per nome.
+     *
+     * @return list<Sala>
+     */
+    public function trovaTutte(): array
+    {
+        $risultato = $this->connessione->query(
+            'SELECT id, nome, capienza, inizio_occupazione, fine_occupazione
+             FROM sale
+             ORDER BY id ASC'
+        );
+        $sale = [];
+
+        while ($riga = $risultato->fetch_assoc()) {
+            $sale[] = new Sala(
+                (int) $riga['id'],
+                $riga['nome'],
+                (int) $riga['capienza'],
+                $riga['inizio_occupazione'],
+                $riga['fine_occupazione']
+            );
+        }
+
+        $risultato->free();
+
+        return $sale;
+    }
 }

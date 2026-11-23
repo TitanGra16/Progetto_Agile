@@ -51,6 +51,12 @@ $autenticato = $sessione->getIdUtente() !== null;
                     <p>Cerca un iscritto per nome, cognome o codice.</p>
                     <span class="card-link">Ricerca Iscritto →</span>
                 </a>
+                <a class="feature-card" href="aggiunge-sala.php">
+                    <span class="feature-tag">Sale</span>
+                    <h3>Aggiungi sala</h3>
+                    <p>Inserisci una nuova sala con capienza e orari di occupazione.</p>
+                    <span class="card-link">Aggiungi sala →</span>
+                </a>
                 <a class="feature-card" href="<?= $autenticato ? 'homepage.php' : 'login.php' ?>">
                     <span class="feature-tag">UE-03</span>
                     <h3><?= $autenticato ? 'Area personale' : 'Login' ?></h3>
