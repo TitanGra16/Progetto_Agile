@@ -3,13 +3,15 @@
 declare(strict_types=1);
 
 use Ladythelemons\Fitslot\Controller\CertificatoMedicoController;
-
+use Ladythelemons\Fitslot\Service\AutorizzazioneService;
 header('Cache-Control: no-store');
 
-// Sostituire questo return con il controllo dei permessi di UE-04.
-return;
-
 require_once dirname(__DIR__) . '/bootstrap.php';
+
+if (!(new AutorizzazioneService())->haRuolo('RECEPTION')) {
+    http_response_code(403);
+    exit('Accesso riservato alla reception.');
+}
 
 $metodo = $_SERVER['REQUEST_METHOD'];
 if ($metodo !== 'GET' && $metodo !== 'POST') {
