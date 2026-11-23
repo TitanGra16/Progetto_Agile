@@ -16,12 +16,9 @@ if (!class_exists(AutorizzazioneService::class)) {
     exit('Gestione listino in attesa di UE-04.');
 }
 
-try {
-    $autorizzato = (new AutorizzazioneService())->haRuolo('GESTORE');
-} catch (Throwable $errore) {
-    error_log('UE-08 autorizzazione: ' . $errore->getMessage());
-    http_response_code(503);
-    exit('Impossibile verificare i permessi.');
+if (!(new AutorizzazioneService())->haRuolo('GESTORE')) {
+    http_response_code(403);
+    exit('Accesso riservato al gestore.');
 }
 
 if (!$autorizzato) {
