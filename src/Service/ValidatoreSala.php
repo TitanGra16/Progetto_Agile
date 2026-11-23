@@ -87,7 +87,7 @@ class ValidatoreSala
         return ($ore >= 0 && $ore < 24) && ($minuti >= 0 && $minuti < 60) && ($secondi >= 0 && $secondi < 60);
     }
 
-    private function orarioInSecondi(string $orario): int
+    public function orarioInSecondi(string $orario): int
     {
         $parti = array_map('intval', explode(':', $orario));
         $secondi = ($parti[0] * 3600) + ($parti[1] * 60);
