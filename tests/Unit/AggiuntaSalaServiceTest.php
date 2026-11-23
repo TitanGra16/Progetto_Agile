@@ -102,3 +102,5 @@ final class AggiuntaSalaServiceTest extends TestCase
         $this->assertSame('I dati della sala sono mancanti o non validi.', $result['messaggio']);
     }
 }
+
+   

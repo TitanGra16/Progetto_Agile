@@ -39,17 +39,6 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Aggiungi sala - FitSlot</title>
     <link rel="stylesheet" href="css/portale.css">
-    <script src="js/aggiunge-sala.js" defer></script>
-    <?php if (
-        $pagina['esito'] === 'dati_non_validi'
-        && str_contains($pagina['messaggio'], 'fine occupazione')
-    ): ?>
-        <script>
-            window.addEventListener('DOMContentLoaded', () => {
-                alert(<?= json_encode($pagina['messaggio'], JSON_UNESCAPED_UNICODE) ?>);
-            });
-        </script>
-    <?php endif; ?>
 </head>
 <body>
     <header class="topbar">
@@ -71,6 +60,7 @@ try {
                         <h2 class="operation-title">Sala aggiunta con successo</h2>
                     <?php else: ?>
                         <h2 class="operation-title">Errore durante l’aggiunta della sala</h2>
+                        <h2 class="operation-title"><?= htmlspecialchars($pagina['messaggio'], ENT_QUOTES, 'UTF-8') ?></h2>
                     <?php endif; ?>
                 </aside>
             <?php endif; ?>

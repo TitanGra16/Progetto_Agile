@@ -54,6 +54,13 @@ class ValidatoreSala
             return false;
         }
 
+        if (
+            $this->orarioInSecondi($sala['fine_occupazione'])
+            - $this->orarioInSecondi($sala['inizio_occupazione']) < 3600
+        ) {
+            return false;
+        }
+
         return true;
     }
 

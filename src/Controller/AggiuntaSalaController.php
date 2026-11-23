@@ -77,6 +77,15 @@ class AggiuntaSalaController
             return $pagina;
         }
 
+        if(
+            $this->validatore->orarioInSecondi($fine)
+            - $this->validatore->orarioInSecondi($inizio) < 3600
+        ) {
+            $pagina['esito'] = 'dati_non_validi';
+            $pagina['messaggio'] = 'L’orario di occupazione deve essere di almeno un’ora.';
+            return $pagina;
+        }
+
         try {
             if ($this->servizio === null) {
                 $this->servizio = new AggiuntaSalaService(new SaleRepository());

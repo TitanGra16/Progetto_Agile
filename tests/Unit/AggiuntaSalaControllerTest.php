@@ -77,4 +77,21 @@ final class AggiuntaSalaControllerTest extends TestCase
             $pagina['messaggio']
         );
     }
+
+    public function testNomeDuplicatoPassaConOrariValidi(): void
+    {
+        $servizio = $this->createMock(AggiuntaSalaService::class);
+        $servizio->expects($this->once())->method('aggiunge')
+            ->with($this->dati())
+            ->willReturn([
+                'esito' => 'nome_duplicato',
+                'messaggio' => 'Nome della sala già esistente.',
+            ]);
+        $controllore = new AggiuntaSalaController($servizio);
+
+        $pagina = $controllore->gestisciRichiesta('POST', $this->dati());
+
+        $this->assertSame('nome_duplicato', $pagina['esito']);
+        $this->assertSame('Nome della sala già esistente.', $pagina['messaggio']);
+    }
 }
