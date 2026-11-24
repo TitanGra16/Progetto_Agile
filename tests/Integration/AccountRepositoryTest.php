@@ -42,6 +42,21 @@ final class AccountRepositoryTest extends TestCase
             ) ENGINE=InnoDB
         ");
 
+        $this->connessione->query("
+            CREATE TEMPORARY TABLE ruoli (
+                id TINYINT UNSIGNED PRIMARY KEY,
+                nome VARCHAR(30) NOT NULL UNIQUE
+            ) ENGINE=InnoDB
+        ");
+        $this->connessione->query("INSERT INTO ruoli (id, nome) VALUES (1, 'ISCRITTO')");
+        $this->connessione->query("
+            CREATE TEMPORARY TABLE account_ruoli (
+                account_id BIGINT UNSIGNED NOT NULL,
+                ruolo_id TINYINT UNSIGNED NOT NULL,
+                PRIMARY KEY (account_id, ruolo_id)
+            ) ENGINE=InnoDB
+        ");
+
         // Inseriamo un utente fittizio
         $this->connessione->query("
             INSERT INTO utenti
@@ -123,6 +138,11 @@ final class AccountRepositoryTest extends TestCase
         $this->assertSame('hash-token-prova', $risultato['activation_token_hash']);
         $this->assertSame('2030-01-01 12:00:00', $risultato['activation_expires_at']);
         $this->assertNull($risultato['activated_at']);
+
+        $ruolo = $this->connessione->query(
+            "SELECT ruolo_id FROM account_ruoli WHERE account_id = $idUtente"
+        )->fetch_assoc();
+        $this->assertSame(1, (int) $ruolo['ruolo_id']);
     }
 
     public function testTrovaAccountPerToken(): void

@@ -9,6 +9,7 @@ use Ladythelemons\Fitslot\Repository\SaleRepository;
 require_once dirname(__DIR__) . '/bootstrap.php';
 session_start(['cookie_httponly' => true, 'cookie_samesite' => 'Lax']);
 
+
 $controllore = new AggiuntaSalaController();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

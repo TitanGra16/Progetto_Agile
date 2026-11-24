@@ -99,3 +99,7 @@ Prima della PR verificare i comandi sopra, git status e il diff da proporre. La 
 Usiamo nomi italiani per variabili, metodi e messaggi scritti dal gruppo, per esempio `leggiConfigurazione()`, `connetti()` e `$connessione`. Manteniamo i nomi richiesti da PHP, PHPUnit e MySQLi. I test sono casi separati e non richiedono MySQL.
 
 Il setup resta un comando esplicito, separato dall'avvio del sito.
+
+### Account demo e ruoli
+
+Le regole degli account demo della UE-04, compresi ruoli, password locale e attivazione, sono raccolte in [`docs/UE-04_ACCOUNT_DEMO.md`](docs/UE-04_ACCOUNT_DEMO.md).
