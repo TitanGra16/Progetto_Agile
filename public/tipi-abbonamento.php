@@ -21,11 +21,6 @@ if (!(new AutorizzazioneService())->haRuolo('GESTORE')) {
     exit('Accesso riservato al gestore.');
 }
 
-if (!$autorizzato) {
-    http_response_code(403);
-    exit('Accesso riservato al gestore.');
-}
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start(['cookie_httponly' => true, 'cookie_samesite' => 'Lax']);
 }
