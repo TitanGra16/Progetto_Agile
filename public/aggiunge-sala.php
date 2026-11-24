@@ -5,9 +5,22 @@ declare(strict_types=1);
 use Ladythelemons\Fitslot\Controller\AggiuntaSalaController;
 use Ladythelemons\Fitslot\DataModel\Sala;
 use Ladythelemons\Fitslot\Repository\SaleRepository;
+use Ladythelemons\Fitslot\Service\AutorizzazioneService;
+use Ladythelemons\Fitslot\Service\SessioneService;
 
 require_once dirname(__DIR__) . '/bootstrap.php';
 session_start(['cookie_httponly' => true, 'cookie_samesite' => 'Lax']);
+
+$sessioneUtente = new SessioneService();
+if ($sessioneUtente->getIdUtente() === null) {
+    header('Location: login.php');
+    exit;
+}
+
+if (!(new AutorizzazioneService())->haAccessoA(['GESTORE'])) {
+    http_response_code(403);
+    exit('Accesso non autorizzato.');
+}
 
 
 $controllore = new AggiuntaSalaController();

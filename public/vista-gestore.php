@@ -45,12 +45,12 @@ if (!$autorizzazione->haAccessoA(['GESTORE'])) {
             <p>Qui il gestore potrà controllare le attività e l'andamento del centro.</p>
         </div>
         <section class="card-grid" aria-label="Funzioni del gestore">
-            <article class="feature-card">
+            <a class="feature-card" href="aggiunge-sala.php">
                 <span class="feature-tag">GESTORE</span>
-                <h3>Controllo attività</h3>
-                <p>Visualizza le attività svolte dagli istruttori e dalla reception.</p>
-            </article>
-            <article class="feature-card">
+                <h3>Aggiungi sala</h3>
+                <p>Aggiungi una nuova sala al sistema.</p>
+            </a>
+            <article class="unavailable">
                 <span class="feature-tag">GESTORE</span>
                 <h3>Gestione centro</h3>
                 <p>Accedi alle funzioni di gestione del centro sportivo.</p>
