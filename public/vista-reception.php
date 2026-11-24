@@ -57,6 +57,12 @@ if (!$autorizzazione->haAccessoA(['RECEPTION'])) {
                 <p>Trova rapidamente un iscritto già presente nel sistema.</p>
                 <span class="card-link">Apri ricerca →</span>
             </a>
+            <a class="feature-card" href="certificati-medici.php">
+                <span class="feature-tag">RECEPTION</span>
+                <h3>Certificati medici</h3>
+                <p>Registra e aggiorna i certificati medici degli iscritti.</p>
+                <span class="card-link">Gestisci certificati →</span>
+            </a>
         </section>
     </main>
     <footer class="site-footer">FitSlot · Area reception</footer>
