@@ -12,10 +12,12 @@ class ModificaCredenzialiService
     private AccountRepository $accountRepository;
     private UtenteRepository $utenteRepository;
 
-    public function __construct()
-    {
-        $this->accountRepository = new AccountRepository();
-        $this->utenteRepository = new UtenteRepository();
+    public function __construct(
+        ?AccountRepository $accountRepository = null,
+        ?UtenteRepository $utenteRepository = null
+    ) {
+        $this->accountRepository = $accountRepository ?? new AccountRepository();
+        $this->utenteRepository = $utenteRepository ?? new UtenteRepository();
     }
 
     private function verificaPasswordAttuale(
@@ -106,6 +108,13 @@ public function modificaPassword(
             'messaggio' => 'La nuova password deve contenere almeno 8 caratteri.'
         ];
     }
+    // Impedisce password superiori a 72 byte (limite di bcrypt)
+    if (strlen($nuovaPassword) > 72) {
+        return [
+            'esito' => 'errore',
+            'messaggio' => 'La nuova password non può superare i 72 byte.'
+        ];
+    }
 
     // Controlla che le due password coincidano
     if ($nuovaPassword !== $confermaPassword) {
@@ -116,7 +125,7 @@ public function modificaPassword(
     }
 
     // Impedisce di riutilizzare la password attuale
-    if ($nuovaPassword === $passwordAttuale) {
+    if ($this->verificaPasswordAttuale($idUtente, $nuovaPassword)) {
         return [
             'esito' => 'errore',
             'messaggio' => 'La nuova password deve essere diversa da quella attuale.'
