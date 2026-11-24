@@ -35,12 +35,16 @@ $mostraGestore = $isGestore;
 <body>
     <header class="topbar">
         <a class="wordmark" href="index.php">FIT<span>SLOT</span></a>
-        <nav aria-label="Navigazione principale">
-            <a href="index.php">Portale</a>
-            <form class="logout-form" action="logout.php" method="POST">
-                <button type="submit">Esci</button>
-            </form>
-        </nav>
+    <nav aria-label="Navigazione principale">
+        <a href="index.php">Portale</a>
+
+        <!-- Accesso al profilo personale per tutti gli utenti autenticati -->
+        <a href="profilo.php">Il mio profilo</a>
+        <form class="logout-form" action="logout.php" method="POST">
+            <button type="submit">Esci</button>
+        </form>
+    </nav>
+
     </header>
 
     <main class="page-shell">
