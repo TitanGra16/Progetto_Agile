@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 use Ladythelemons\Fitslot\Controller\CertificatoMedicoController;
 use Ladythelemons\Fitslot\Service\AutorizzazioneService;
+use Ladythelemons\Fitslot\Service\TokenCsrf;
 header('Cache-Control: no-store');
 
 require_once dirname(__DIR__) . '/bootstrap.php';
+session_start(['cookie_httponly' => true, 'cookie_samesite' => 'Lax']);
 
 if (!(new AutorizzazioneService())->haRuolo('RECEPTION')) {
     http_response_code(403);
@@ -18,6 +20,14 @@ if ($metodo !== 'GET' && $metodo !== 'POST') {
     header('Allow: GET, POST');
     http_response_code(405);
     exit;
+}
+
+$tokenCsrf = TokenCsrf::genera($_SESSION, 'csrf_certificati_medici');
+
+if ($metodo === 'POST'
+    && !TokenCsrf::valida($_SESSION, 'csrf_certificati_medici', $_POST['token_csrf'] ?? null)) {
+    http_response_code(403);
+    exit('Richiesta non valida. Ricarica la pagina e riprova.');
 }
 
 try {
@@ -52,6 +62,9 @@ $certificato = $dati['certificato'] ?? null;
 <body>
     <header class="topbar">
         <a class="wordmark" href="index.php">FIT<span>SLOT</span></a>
+        <nav aria-label="Navigazione principale">
+            <a href="vista-reception.php">Area reception</a>
+        </nav>
     </header>
     <main class="page-shell pagina-certificati">
         <h1>Certificati medici</h1>
@@ -94,6 +107,7 @@ $certificato = $dati['certificato'] ?? null;
             <section class="panel" aria-labelledby="salva-certificato">
                 <h2 id="salva-certificato"><?= $certificato === null ? 'Registra certificato' : 'Aggiorna certificato' ?></h2>
                 <form class="registration-form" method="post" action="certificati-medici.php" enctype="multipart/form-data">
+                    <input type="hidden" name="token_csrf" value="<?= htmlspecialchars($tokenCsrf, ENT_QUOTES, 'UTF-8') ?>">
                     <input type="hidden" name="utente_id" value="<?= $pagina['utente_id'] ?>">
                     <p>
                         <label for="scadenza">Data di scadenza</label>
