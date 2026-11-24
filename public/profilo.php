@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use Ladythelemons\Fitslot\Repository\UtenteRepository;
 use Ladythelemons\Fitslot\Service\SessioneService;
+use Ladythelemons\Fitslot\Service\AutorizzazioneService;
 
 require_once dirname(__DIR__) . '/bootstrap.php';
 
@@ -24,10 +25,13 @@ if ($utente === null) {
     http_response_code(404);
     exit('Profilo utente non trovato.');
 }
+// Recupero i ruoli associati all'utente autenticato
+$autorizzazione = new AutorizzazioneService();
+$ruoli = $autorizzazione->getRuoliUtente();
 
 ?>
 
-<!-- pagina (probabilmente momentanea) di visualizzazione delle caratteristiche del profilo con integrato il tasto di modifica credenziali-->
+
 <!DOCTYPE html>
 <html lang="it">
 
@@ -41,12 +45,16 @@ if ($utente === null) {
 </head>
 
 <body>
-
     <header class="topbar">
         <a class="wordmark" href="index.php">
             FIT<span>SLOT</span>
         </a>
+
+        <nav aria-label="Navigazione principale">
+            <a href="homepage.php">Torna nell'area personale</a>
+        </nav>
     </header>
+
 
     <main class="page-shell">
 
@@ -75,8 +83,16 @@ if ($utente === null) {
     </p>
 
     <p>
-                <strong>Ruolo:</strong> Iscritto 
-                <!-- da aggiornare quando verrà implementato la user story 4.0 -->
+                
+    <p>
+        <strong>Ruoli:</strong>
+        <?= htmlspecialchars(
+            $ruoli !== [] ? implode(', ', $ruoli) : 'Nessun ruolo assegnato',
+            ENT_QUOTES,
+            'UTF-8'
+        ) ?>
+</p>
+
     </p>
 
     <a href="modifica-credenziali.php" class="button primary">
