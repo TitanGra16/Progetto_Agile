@@ -81,8 +81,6 @@ $ruoli = $autorizzazione->getRuoliUtente();
         <strong>Email:</strong>
         <?= htmlspecialchars($utente['email'], ENT_QUOTES, 'UTF-8') ?>
     </p>
-
-    <p>
                 
     <p>
         <strong>Ruoli:</strong>
@@ -91,8 +89,6 @@ $ruoli = $autorizzazione->getRuoliUtente();
             ENT_QUOTES,
             'UTF-8'
         ) ?>
-</p>
-
     </p>
 
     <a href="modifica-credenziali.php" class="button primary">
