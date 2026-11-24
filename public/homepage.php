@@ -96,6 +96,12 @@ $mostraGestore = $isGestore;
                         <p>Controlla le attività del centro e quelle degli altri ruoli.</p>
                         <span class="card-link">Apri area gestore →</span>
                     </a>
+                    <a class="feature-card" href="tipi-abbonamento.php">
+                        <span class="feature-tag">UE-08</span>
+                        <h3>Tipi di abbonamento</h3>
+                        <p>Gestisci il listino e i piani di abbonamento.</p>
+                        <span class="card-link">Apri gestione listino &rarr;</span>
+                    </a>
                 <?php endif; ?>
             </div>
         </section>
