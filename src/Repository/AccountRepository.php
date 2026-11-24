@@ -41,6 +41,40 @@ class AccountRepository
         return $account;
     }
 
+    /**
+     * Restituisce i ruoli assegnati a un account.
+     *
+     * @return string[] Nomi dei ruoli assegnati all'account.
+     */
+    public function trovaRuoli(int $idAccount): array
+    {
+        $connessione = $this->connessione ?? Database::connetti();
+
+        $query = $connessione->prepare(
+            'SELECT ruoli.nome
+             FROM account_ruoli
+             JOIN ruoli ON ruoli.id = account_ruoli.ruolo_id
+             WHERE account_ruoli.account_id = ?
+             ORDER BY ruoli.id'
+        );
+        $query->bind_param('i', $idAccount);
+        $query->execute();
+        $query->bind_result($nomeRuolo);
+
+        $ruoli = [];
+        while ($query->fetch()) {
+            $ruoli[] = $nomeRuolo;
+        }
+
+        $query->close();
+
+        if ($this->connessione === null) {
+            $connessione->close();
+        }
+
+        return $ruoli;
+    }
+
     public function creaInAttesa(
         int $idUtente,
         string $tokenHash,
@@ -59,6 +93,17 @@ class AccountRepository
         $query->bind_param('iss', $idUtente, $tokenHash, $scadenza);
         $query->execute();
         $query->close();
+
+        // Ogni account creato dal flusso di attivazione parte come iscritto.
+        $queryRuolo = $connessione->prepare(
+            "INSERT IGNORE INTO account_ruoli (account_id, ruolo_id)
+             SELECT ?, ruoli.id
+             FROM ruoli
+             WHERE ruoli.nome = 'ISCRITTO'"
+        );
+        $queryRuolo->bind_param('i', $idUtente);
+        $queryRuolo->execute();
+        $queryRuolo->close();
 
         if ($this->connessione === null) {
             $connessione->close();
