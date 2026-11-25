@@ -7,7 +7,7 @@ SELECT
             'marco.bianchi@example.test',
             'giulia.verdi@example.test',
             'giuseppe.rossi@example.test'
-        ) THEN '$2y$12$41T8tBvNXcAGeaecczkaSOTzhhELOS5z2DPFz33y.IdYDKBCqVX32'
+        ) THEN '$2y$12$ks3FSGYgzyhQ83Bj7DrHJuIc03IOw9kxuakqiJBqwDdMoykeTcwlC'
         ELSE NULL
     END,
     CASE
