@@ -263,6 +263,15 @@ a.feature-card:hover {
     font-size: 1.125rem;
 }
 
+.dashboard-card-primary {
+    border-color: var(--accent);
+}
+
+.dashboard-card-primary .dashboard-card-arrow {
+    background: var(--accent);
+    color: #171717;
+}
+
 .unavailable {
     opacity: .64;
     border-style: dashed;

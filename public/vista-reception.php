@@ -28,45 +28,43 @@ if (!$autorizzazione->haAccessoA(['RECEPTION'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Area reception - FitSlot</title>
     <link rel="stylesheet" href="css/portale.css">
+    <link rel="stylesheet" href="css/area-iscritto.css">
 </head>
-<body>
+<body class="member-page">
     <header class="topbar">
-        <a class="wordmark" href="index.php">FIT<span>SLOT</span></a>
+        <a class="wordmark" href="index.php" aria-label="FitSlot, pagina iniziale">FIT<span>SLOT</span></a>
         <nav aria-label="Navigazione principale">
-            <a href="index.php">Portale</a>
-            <a href="login.php">Accedi</a>
+            <a href="homepage.php">Le mie aree</a>
+            <form class="logout-form" action="logout.php" method="post">
+                <button type="submit">Esci</button>
+            </form>
         </nav>
     </header>
 
     <main class="page-shell">
-        <div class="page-heading">
-            <span class="eyebrow">Vista reception</span>
-            <h1>Area reception</h1>
-            <p>Qui la reception potrà gestire le attività quotidiane del centro.</p>
-        </div>
-        <section class="card-grid" aria-label="Funzioni della reception">
-            <a class="feature-card" href="registrazione-iscritto.php">
-                <span class="feature-tag">RECEPTION</span>
-                <h3>Registra iscritto</h3>
-                <p>Inserisci i dati di una nuova persona iscritta.</p>
-                <span class="card-link">Apri registrazione →</span>
+        <header class="dashboard-heading">
+            <h1>Area <span>reception</span></h1>
+        </header>
+
+        <nav class="card-grid" aria-label="Funzioni della reception">
+            <a class="feature-card dashboard-card dashboard-card-primary" href="ricerca-iscritto.php">
+                <h2>Cerca iscritto</h2>
+                <p>Cerca per nome, cognome o codice iscritto.</p>
+                <span class="dashboard-card-arrow" aria-hidden="true">&rarr;</span>
             </a>
-            <a class="feature-card" href="ricerca-iscritto.php">
-                <span class="feature-tag">RECEPTION</span>
-                <h3>Cerca iscritto</h3>
-                <p>Trova rapidamente un iscritto già presente nel sistema.</p>
-                <span class="card-link">Apri ricerca →</span>
+            <a class="feature-card dashboard-card" href="registrazione-iscritto.php">
+                <h2>Registra iscritto</h2>
+                <p>Crea l’anagrafica di un nuovo iscritto.</p>
+                <span class="dashboard-card-arrow" aria-hidden="true">&rarr;</span>
             </a>
             <?php if ($autorizzazione->haRuolo('RECEPTION')): ?>
-                <a class="feature-card" href="certificati-medici.php">
-                    <span class="feature-tag">RECEPTION</span>
-                    <h3>Certificati medici</h3>
-                    <p>Registra e aggiorna i certificati medici degli iscritti.</p>
-                    <span class="card-link">Gestisci certificati →</span>
+                <a class="feature-card dashboard-card" href="certificati-medici.php">
+                    <h2>Certificati medici</h2>
+                    <p>Registra la scadenza e archivia una copia PDF.</p>
+                    <span class="dashboard-card-arrow" aria-hidden="true">&rarr;</span>
                 </a>
             <?php endif; ?>
-        </section>
+        </nav>
     </main>
-    <footer class="site-footer">FitSlot · Area reception</footer>
 </body>
 </html>
