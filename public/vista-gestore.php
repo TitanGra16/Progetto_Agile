@@ -45,7 +45,13 @@ if (!$autorizzazione->haAccessoA(['GESTORE'])) {
             <p>Qui il gestore potrà controllare le attività e l'andamento del centro.</p>
         </div>
         <section class="card-grid" aria-label="Funzioni del gestore">
-            <a class="feature-card" href="aggiunge-sala.php">
+            <a class="feature-card" href="tipi-abbonamento.php">
+                <span class="feature-tag">UE-08</span>
+                <h3>Tipi di abbonamento</h3>
+                <p>Gestisci il listino e i piani di abbonamento.</p>
+                <span class="card-link">Apri gestione listino &rarr;</span>
+            </a>
+            <article class="feature-card">
                 <span class="feature-tag">GESTORE</span>
                 <h3>Aggiungi sala</h3>
                 <p>Aggiungi una nuova sala al sistema.</p>

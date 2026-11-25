@@ -35,12 +35,16 @@ $mostraGestore = $isGestore;
 <body>
     <header class="topbar">
         <a class="wordmark" href="index.php">FIT<span>SLOT</span></a>
-        <nav aria-label="Navigazione principale">
-            <a href="index.php">Portale</a>
-            <form class="logout-form" action="logout.php" method="POST">
-                <button type="submit">Esci</button>
-            </form>
-        </nav>
+    <nav aria-label="Navigazione principale">
+        <a href="index.php">Portale</a>
+
+        <!-- Accesso al profilo personale per tutti gli utenti autenticati -->
+        <a href="profilo.php">Il mio profilo</a>
+        <form class="logout-form" action="logout.php" method="POST">
+            <button type="submit">Esci</button>
+        </form>
+    </nav>
+
     </header>
 
     <main class="page-shell">
@@ -91,6 +95,12 @@ $mostraGestore = $isGestore;
                         <h3>Area gestore</h3>
                         <p>Controlla le attività del centro e quelle degli altri ruoli.</p>
                         <span class="card-link">Apri area gestore →</span>
+                    </a>
+                    <a class="feature-card" href="tipi-abbonamento.php">
+                        <span class="feature-tag">UE-08</span>
+                        <h3>Tipi di abbonamento</h3>
+                        <p>Gestisci il listino e i piani di abbonamento.</p>
+                        <span class="card-link">Apri gestione listino &rarr;</span>
                     </a>
                 <?php endif; ?>
             </div>

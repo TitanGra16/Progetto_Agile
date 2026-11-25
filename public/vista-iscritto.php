@@ -50,11 +50,14 @@ if (!$autorizzazione->haAccessoA(['ISCRITTO'])) {
                 <h3>Le mie prenotazioni</h3>
                 <p>Consulta le attività prenotate e i posti disponibili.</p>
             </article>
-            <article class="feature-card">
+            
+            <a class="feature-card" href="profilo.php">
                 <span class="feature-tag">ISCRITTO</span>
                 <h3>Il mio profilo</h3>
-                <p>Visualizza i dati personali, l'abbonamento e il certificato.</p>
-            </article>
+                <p>Visualizza le informazioni del tuo account.</p>
+                <span class="card-link">Apri il mio profilo →</span>
+            </a>
+
         </section>
     </main>
     <footer class="site-footer">FitSlot · Area iscritto</footer>

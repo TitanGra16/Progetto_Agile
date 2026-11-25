@@ -44,6 +44,12 @@ $autenticato = $sessione->getIdUtente() !== null;
                     <p><?= $autenticato ? 'Accedi alla pagina riservata della tua sessione.' : 'Entra utilizzando email e password.' ?></p>
                     <span class="card-link">Apri →</span>
                 </a>
+                <a class="feature-card" href="tipi-abbonamento.php">
+                    <span class="feature-tag">UE-08</span>
+                    <h3>Tipi di abbonamento</h3>
+                    <p>Gestisci il listino e i piani di abbonamento. Accesso riservato al gestore.</p>
+                    <span class="card-link">Apri gestione listino &rarr;</span>
+                </a>
                 <a class="feature-card" href="richiesta-attivazione.php">
                     <span class="feature-tag">UE-69</span>
                     <h3>Attivazione account</h3>

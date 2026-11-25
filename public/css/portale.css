@@ -414,3 +414,58 @@ a.feature-card:hover {
         padding: 20px;
     }
 }
+
+/* Stile per pagina di modifica password e email*/
+.panel-password {
+    margin-top: 24px;
+}
+
+/* Campo password con icona per mostrare/nascondere */
+.campo-password {
+    position: relative;
+    display: block;
+    width: 100%;
+    margin-top: 7px;
+}
+
+.registration-form .campo-password input {
+    margin-top: 0;
+    padding-right: 55px;
+}
+
+.registration-form .campo-password .mostra-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0;
+    padding: 6px;
+
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+
+    color: #bcbcbc;
+    cursor: pointer;
+}
+
+.registration-form .campo-password .mostra-password:hover {
+    color: #ff741a;
+    filter: none;
+}
+
+.mostra-password svg {
+    width: 23px;
+    height: 23px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
