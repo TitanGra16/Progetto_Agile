@@ -78,6 +78,22 @@ final class AggiuntaSalaControllerTest extends TestCase
         );
     }
 
+    public function testRifiutaOrariMalformatiPrimaDiConvertirliInSecondi(): void
+    {
+        foreach (['08:xx', '25:00'] as $inizio) {
+            $servizio = $this->createMock(AggiuntaSalaService::class);
+            $servizio->expects($this->never())->method('aggiunge');
+            $controllore = new AggiuntaSalaController($servizio);
+            $dati = $this->dati();
+            $dati['inizio_occupazione'] = $inizio;
+
+            $pagina = $controllore->gestisciRichiesta('POST', $dati);
+
+            $this->assertSame('dati_non_validi', $pagina['esito']);
+            $this->assertSame('I dati della sala sono mancanti o non validi.', $pagina['messaggio']);
+        }
+    }
+
     public function testNomeDuplicatoPassaConOrariValidi(): void
     {
         $servizio = $this->createMock(AggiuntaSalaService::class);

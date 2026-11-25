@@ -70,7 +70,7 @@ class ValidatoreSala
      * @param string $orario Orario da validare.
      * @return bool True se l'orario è valido, false altrimenti.
      */
-    private function validaOrario(string $orario): bool
+    public function validaOrario(string $orario): bool
     {
         $partiOrario = explode(':', $orario);
         if (count($partiOrario) !== 2 && count($partiOrario) !== 3) {

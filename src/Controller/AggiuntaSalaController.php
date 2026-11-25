@@ -68,6 +68,12 @@ class AggiuntaSalaController
 
         $inizio = $pagina['dati']['inizio_occupazione'];
         $fine = $pagina['dati']['fine_occupazione'];
+        if (!$this->validatore->validaOrario($inizio) || !$this->validatore->validaOrario($fine)) {
+            $pagina['esito'] = 'dati_non_validi';
+            $pagina['messaggio'] = 'I dati della sala sono mancanti o non validi.';
+            return $pagina;
+        }
+
         if (
             $this->validatore->orarioInSecondi($inizio)
             >= $this->validatore->orarioInSecondi($fine)
