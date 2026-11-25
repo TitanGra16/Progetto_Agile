@@ -14,6 +14,6 @@ Servono PHP 8.4 (da 8.4.1) con MySQLi, Composer 2 e MySQL 8.4.
 ## Test
 
 - `composer test:unit` esegue i test unitari senza MySQL.
-- `composer test` esegue anche i test di integrazione. Usa un'istanza MySQL di test con `fitslot` già inizializzato e imposta `FITSLOT_RUN_DB_TESTS=1` per includere i test del listino.
+- `composer test` esegue anche i test di integrazione: richiede un'istanza MySQL di test con `fitslot` già inizializzato.
 
 [Account demo e ruoli](docs/UE-04_ACCOUNT_DEMO.md) · [Come contribuire](CONTRIBUTING.md)

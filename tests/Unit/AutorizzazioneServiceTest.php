@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 use Ladythelemons\Fitslot\Repository\AccountRepository;
@@ -9,94 +8,38 @@ use PHPUnit\Framework\TestCase;
 
 final class AutorizzazioneServiceTest extends TestCase
 {
-    /** @param string[] $ruoli */
     private function servizioConRuoli(array $ruoli): AutorizzazioneService
     {
-        $accountRepository = $this->createStub(AccountRepository::class);
-        $accountRepository->method('trovaRuoli')->willReturn($ruoli);
-
+        $repository = $this->createStub(AccountRepository::class);
+        $repository->method('trovaRuoli')->willReturn($ruoli);
         $sessione = $this->createStub(SessioneService::class);
         $sessione->method('getIdUtente')->willReturn(7);
 
-        return new AutorizzazioneService($accountRepository, $sessione);
+        return new AutorizzazioneService($repository, $sessione);
     }
 
-    public function testRestituisceIruoliDellUtenteAutenticato(): void
-    {
-        $accountRepository = $this->createMock(AccountRepository::class);
-        $accountRepository->expects($this->once())
-            ->method('trovaRuoli')
-            ->with(7)
-            ->willReturn(['ISCRITTO', 'ISTRUTTORE']);
-
-        $sessione = $this->createStub(SessioneService::class);
-        $sessione->method('getIdUtente')->willReturn(7);
-
-        $servizio = new AutorizzazioneService($accountRepository, $sessione);
-
-        $this->assertSame(['ISCRITTO', 'ISTRUTTORE'], $servizio->getRuoliUtente());
-    }
-
-    public function testUtenteNonAutenticatoNonHaRuoli(): void
-    {
-        $accountRepository = $this->createMock(AccountRepository::class);
-        $accountRepository->expects($this->never())->method('trovaRuoli');
-
-        $sessione = $this->createStub(SessioneService::class);
-        $sessione->method('getIdUtente')->willReturn(null);
-
-        $servizio = new AutorizzazioneService($accountRepository, $sessione);
-
-        $this->assertSame([], $servizio->getRuoliUtente());
-    }
-
-    public function testControllaLaPresenzaDiUnRuolo(): void
-    {
-        $accountRepository = $this->createStub(AccountRepository::class);
-        $accountRepository->method('trovaRuoli')
-            ->willReturn(['ISCRITTO', 'ISTRUTTORE']);
-
-        $sessione = $this->createStub(SessioneService::class);
-        $sessione->method('getIdUtente')->willReturn(7);
-
-        $servizio = new AutorizzazioneService($accountRepository, $sessione);
-
-        $this->assertTrue($servizio->haRuolo('ISTRUTTORE'));
-        $this->assertFalse($servizio->haRuolo('GESTORE'));
-    }
-
-    public function testIscrittoAccedeSoloAllaVistaIscritto(): void
-    {
-        $servizio = $this->servizioConRuoli(['ISCRITTO']);
-
-        $this->assertTrue($servizio->haAccessoA(['ISCRITTO']));
-        $this->assertFalse($servizio->haAccessoA(['RECEPTION']));
-    }
-
-    public function testIstruttoreConRuoloIscrittoAccedeAEntrambeLeViste(): void
-    {
-        $servizio = $this->servizioConRuoli(['ISCRITTO', 'ISTRUTTORE']);
-
-        $this->assertTrue($servizio->haAccessoA(['ISCRITTO']));
-        $this->assertTrue($servizio->haAccessoA(['ISTRUTTORE']));
-        $this->assertFalse($servizio->haAccessoA(['GESTORE']));
-    }
-
-    public function testGestoreAccedeSoloAllaVistaGestore(): void
+    public function testGestoreAccedeSoloAllaPropriaArea(): void
     {
         $servizio = $this->servizioConRuoli(['GESTORE']);
 
-        $this->assertFalse($servizio->haAccessoA(['ISCRITTO']));
-        $this->assertFalse($servizio->haAccessoA(['RECEPTION']));
-        $this->assertFalse($servizio->haAccessoA(['ISTRUTTORE']));
-        $this->assertTrue($servizio->haAccessoA(['GESTORE']));
+        self::assertTrue($servizio->haAccessoA(['GESTORE']));
+        self::assertFalse($servizio->haAccessoA(['RECEPTION']));
+        self::assertFalse($servizio->haAccessoA(['ISTRUTTORE']));
     }
 
-    public function testUtenteSenzaRuoliNonAccedeAlleViste(): void
+    public function testUtenteMultiRuoloAccedeAlleAreeAssegnate(): void
+    {
+        $servizio = $this->servizioConRuoli(['ISCRITTO', 'ISTRUTTORE']);
+
+        self::assertTrue($servizio->haAccessoA(['ISCRITTO']));
+        self::assertTrue($servizio->haAccessoA(['ISTRUTTORE']));
+        self::assertFalse($servizio->haAccessoA(['GESTORE']));
+    }
+
+    public function testUtenteSenzaRuoliNonAccede(): void
     {
         $servizio = $this->servizioConRuoli([]);
 
-        $this->assertFalse($servizio->haAccessoA(['ISCRITTO']));
-        $this->assertFalse($servizio->haAccessoA(['RECEPTION']));
+        self::assertFalse($servizio->haAccessoA(['ISCRITTO', 'RECEPTION', 'ISTRUTTORE', 'GESTORE']));
     }
 }

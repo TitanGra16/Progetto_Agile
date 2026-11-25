@@ -9,15 +9,13 @@ use PHPUnit\Framework\TestCase;
 final class TipoAbbonamentoRepositoryTest extends TestCase
 {
     private ?mysqli $connessione = null;
+    private ?TipoAbbonamentoRepository $repository = null;
 
     protected function setUp(): void
     {
-        if (getenv('FITSLOT_RUN_DB_TESTS') !== '1') {
-            self::markTestSkipped('Richiede FITSLOT_RUN_DB_TESTS=1 e migration UE-08 applicata.');
-        }
-
         $this->connessione = Database::connetti();
         $this->connessione->begin_transaction();
+        $this->repository = new TipoAbbonamentoRepository($this->connessione);
     }
 
     protected function tearDown(): void
@@ -26,11 +24,51 @@ final class TipoAbbonamentoRepositoryTest extends TestCase
         $this->connessione?->close();
     }
 
-    public function testCreaLeggeEAggiornaUnTipoDiAbbonamento(): void
+    public function testCreaELeggeUnPiano(): void
     {
-        $repository = new TipoAbbonamentoRepository($this->connessione);
-        $dati = [
-            'nome' => 'Piano integrazione',
+        $dati = $this->dati();
+        $id = $this->repository->crea($dati);
+
+        self::assertGreaterThan(0, $id);
+        $piano = $this->repository->trovaPerId($id);
+        self::assertNotNull($piano);
+        self::assertSame($dati, array_intersect_key($piano, $dati));
+    }
+
+    public function testAggiornaNomePrezzoEStato(): void
+    {
+        $id = $this->repository->crea($this->dati());
+        $dati = $this->dati();
+        $dati['nome'] = 'Piano aggiornato';
+        $dati['prezzo'] = '95.00';
+        $dati['attivo'] = 0;
+
+        $this->repository->aggiorna($id, $dati);
+        $piano = $this->repository->trovaPerId($id);
+
+        self::assertNotNull($piano);
+        self::assertSame('Piano aggiornato', $piano['nome']);
+        self::assertSame('95.00', $piano['prezzo']);
+        self::assertSame(0, $piano['attivo']);
+    }
+
+    public function testElencaIncludeIlPianoCreato(): void
+    {
+        $id = $this->repository->crea($this->dati());
+        $ids = array_column($this->repository->elenca(), 'id');
+
+        self::assertContains($id, $ids);
+    }
+
+    public function testRestituisceNullPerIdInesistente(): void
+    {
+        self::assertNull($this->repository->trovaPerId(999999999));
+    }
+
+    private function dati(): array
+    {
+        return [
+            'nome' => 'Test ' . bin2hex(random_bytes(5)),
             'categoria' => 'PACCHETTO',
             'prezzo' => '85.00',
             'ingressi_totali' => 8,
@@ -41,19 +79,5 @@ final class TipoAbbonamentoRepositoryTest extends TestCase
             'studenti_alle' => '13:30',
             'attivo' => 1,
         ];
-
-        $id = $repository->crea($dati);
-        self::assertGreaterThan(0, $id);
-        $letto = $repository->trovaPerId($id);
-        self::assertNotNull($letto);
-        self::assertSame($dati, array_intersect_key($letto, $dati));
-
-        $dati['nome'] = 'Piano aggiornato';
-        $dati['prezzo'] = '90.00';
-        $repository->aggiorna($id, $dati);
-
-        $aggiornato = $repository->trovaPerId($id);
-        self::assertNotNull($aggiornato);
-        self::assertSame($dati, array_intersect_key($aggiornato, $dati));
     }
 }
