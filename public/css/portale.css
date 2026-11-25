@@ -1,4 +1,3 @@
-/* Portale e registrazione FitSlot: stesso stile delle pagine login/attivazione. */
 :root {
     color-scheme: dark;
     --bg: #101113;
@@ -8,7 +7,6 @@
     --muted: #bcbcbc;
     --accent: #ff741a;
     --border: #424247;
-    --obbligatorio: #ff0000;
 }
 
 * {
@@ -29,7 +27,9 @@ a {
 
 a:focus-visible,
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible,
+.table-scroll:focus-visible {
     outline: 3px solid var(--accent);
     outline-offset: 3px;
 }
@@ -90,15 +90,6 @@ input:focus-visible {
     padding: 20px 24px 70px;
 }
 
-.eyebrow {
-    display: inline-block;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 1.6px;
-    font-size: 12px;
-    font-weight: 800;
-}
-
 h1 {
     font-size: clamp(34px, 5vw, 56px);
     line-height: 1.1;
@@ -106,8 +97,6 @@ h1 {
     letter-spacing: -1.4px;
 }
 
-.page-heading p,
-.section-heading p,
 .feature-card p {
     color: var(--muted);
     line-height: 1.55;
@@ -120,8 +109,7 @@ h1 {
     margin-top: 28px;
 }
 
-.button,
-.registration-form button {
+.button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -134,8 +122,7 @@ h1 {
     border: 1px solid var(--accent);
 }
 
-.primary,
-.registration-form button[type=submit] {
+.primary {
     color: #171717;
     background: var(--accent);
 }
@@ -145,22 +132,8 @@ h1 {
     background: transparent;
 }
 
-.button:hover,
-.registration-form button:hover {
+.button:hover {
     filter: brightness(1.12);
-}
-
-.section-heading {
-    margin: 0 0 22px;
-}
-
-.section-heading h2 {
-    font-size: 27px;
-    margin: 0 0 6px;
-}
-
-.section-heading p {
-    margin: 0;
 }
 
 .card-grid {
@@ -186,28 +159,9 @@ a.feature-card:hover {
     transition: .15s;
 }
 
-.feature-tag {
-    color: var(--accent);
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: .7px;
-}
-
-.feature-card h3 {
-    font-size: 22px;
-    margin: 12px 0 4px;
-}
-
 .feature-card p {
     margin: 0 0 18px;
     font-size: 14px;
-}
-
-.card-link {
-    margin-top: auto;
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--accent);
 }
 
 .dashboard-heading {
@@ -271,29 +225,12 @@ a.feature-card:hover {
     color: #171717;
 }
 
-.unavailable {
-    opacity: .64;
-    border-style: dashed;
-}
-
 .site-footer {
     text-align: center;
     color: #858585;
     padding: 18px;
     font-size: 13px;
 }
-.obbligatorio{
-    color: (var(--obbligatorio)) !important;
-}
-.page-heading {
-    margin: 34px 0 24px;
-}
-
-.page-heading h1 {
-    font-size: clamp(30px, 4vw, 44px);
-    margin: 9px 0;
-}
-
 .panel {
     max-width: 740px;
     padding: 32px;
@@ -304,6 +241,27 @@ a.feature-card:hover {
 
 .wide-panel {
     max-width: none;
+}
+
+.panel-stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+}
+
+.content-panel[id] {
+    scroll-margin-top: 20px;
+}
+
+.content-panel h2 {
+    margin: 0;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+.panel-description {
+    margin: 12px 0 22px;
+    color: var(--muted);
+    line-height: 1.55;
 }
 
 .access-form.inline-form {
@@ -328,35 +286,51 @@ a.feature-card:hover {
     }
 }
 
-.rooms-panel {
-    max-width: none;
-    margin-top: 28px;
-}
-
-.rooms-table-wrapper {
+.table-scroll {
     overflow-x: auto;
+    margin-top: 18px;
 }
 
-.rooms-table {
+.data-table {
     width: 100%;
+    min-width: 32rem;
     border-collapse: collapse;
     text-align: left;
 }
 
-.rooms-table th,
-.rooms-table td {
+.pricing-table {
+    min-width: 54rem;
+}
+
+.data-table th,
+.data-table td {
     padding: 14px 12px;
     border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.data-table thead th {
+    color: var(--muted);
+    font-size: .875rem;
+}
+
+.data-table small {
+    display: block;
+    margin-top: 5px;
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.data-table .member-status {
+    display: inline-block;
     white-space: nowrap;
 }
 
-.rooms-table thead th {
-    color: var(--muted);
-    font-size: 13px;
-}
-
-.rooms-table tbody th {
-    color: var(--text);
+.table-action {
+    color: var(--accent);
+    font-weight: 700;
+    text-underline-offset: 3px;
 }
 
 .visually-hidden {
@@ -385,33 +359,26 @@ a.feature-card:hover {
     color: #a9e9c1;
 }
 
-.registration-form p {
-    margin: 14px 0;
+.form-options {
+    min-width: 0;
+    margin: 0;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
 }
 
-.registration-form label {
-    color: #e7e7e7;
-    font-size: 14px;
+.form-options legend {
+    padding-inline: 6px;
     font-weight: 700;
 }
 
-.registration-form input:not([type=hidden]) {
-    width: 100%;
-    margin-top: 7px;
-    padding: 12px 14px;
-    background: var(--surface-soft);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    color: var(--text);
-    font: inherit;
+.form-errors p {
+    margin: 0;
 }
 
-.registration-form input::placeholder {
-    color: #979797;
-}
-
-.registration-form button {
-    margin: 4px 8px 4px 0;
+.form-errors ul {
+    margin: 8px 0 0;
+    padding-inline-start: 20px;
 }
 
 .search-results {
@@ -513,20 +480,6 @@ a.feature-card:hover {
     height: 18px;
     margin: 0;
     accent-color: var(--accent);
-}
-
-.operation-summary {
-    margin-bottom: 24px;
-    padding: 18px 20px;
-    border: 1px solid var(--border);
-    border-left: 4px solid var(--accent);
-    border-radius: 12px;
-    background: var(--surface-soft);
-}
-
-.operation-summary h2 {
-    margin: 0 0 12px;
-    font-size: 18px;
 }
 
 @media (max-width: 650px) {
