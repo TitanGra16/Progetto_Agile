@@ -4,9 +4,9 @@ SELECT
     utenti.id,
     CASE
         WHEN utenti.email IN (
-            'marco.bianchi@example.test',
-            'giulia.verdi@example.test',
-            'giuseppe.rossi@example.test'
+            'marco.bianchi@example.test', --RECEPTION
+            'giulia.verdi@example.test', --ISCRITTO, ISTRUTTORE
+            'giuseppe.rossi@example.test' --GESTORE
         ) THEN '$2y$12$ks3FSGYgzyhQ83Bj7DrHJuIc03IOw9kxuakqiJBqwDdMoykeTcwlC'
         ELSE NULL
     END,
@@ -20,7 +20,7 @@ SELECT
     END
 FROM utenti
 WHERE utenti.email IN (
-    'anna.rossi@example.test',
+    'anna.rossi@example.test', --ISCRITTO DA ATTIVARE
     'marco.bianchi@example.test',
     'giulia.verdi@example.test',
     'giuseppe.rossi@example.test'
