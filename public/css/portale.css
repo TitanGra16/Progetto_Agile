@@ -475,6 +475,46 @@ a.feature-card:hover {
     overflow-wrap: anywhere;
 }
 
+.certificate-layout {
+    align-items: start;
+    margin-top: 20px;
+}
+
+.certificate-panel h2 {
+    margin: 0;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+.certificate-member {
+    margin: 12px 0 0;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.certificate-member strong {
+    color: var(--text);
+}
+
+.certificate-panel .record-details + .button {
+    margin-top: 20px;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    line-height: 1.5;
+}
+
+.form-check input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--accent);
+}
+
 .operation-summary {
     margin-bottom: 24px;
     padding: 18px 20px;
