@@ -303,6 +303,16 @@ a.feature-card:hover {
     border-radius: 20px;
 }
 
+.wide-panel {
+    max-width: none;
+}
+
+.access-form.inline-form {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    margin: 0;
+}
+
 .rooms-panel {
     max-width: none;
     margin-top: 28px;
@@ -382,17 +392,65 @@ a.feature-card:hover {
     margin: 4px 8px 4px 0;
 }
 
+.search-results {
+    margin-top: 28px;
+}
+
+.search-results h2 {
+    margin: 0 0 16px;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
 .result-list {
     display: grid;
     gap: 14px;
 }
 
 .result-card {
-    display: block;
-    padding: 20px;
+    padding: clamp(20px, 4vw, 28px);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    background: var(--surface-soft);
+    border-radius: 18px;
+    background: var(--surface);
+}
+
+.result-card-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 20px;
+}
+
+.result-card-heading h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.result-card-heading p {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.record-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 16px;
+    margin: 20px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.record-details dt {
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: .875rem;
+}
+
+.record-details dd {
+    margin: 0;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
 .operation-summary {
@@ -426,29 +484,8 @@ a.feature-card:hover {
     .panel {
         padding: 20px;
     }
-}
 
-/* UE-53: link gestione certificato nella ricerca iscritti */
-
-.link-certificato {
-    display: inline-block;
-    margin-top: 14px;
-    color: #ff7a15;
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.link-certificato:hover {
-    text-decoration: underline;
-}
-
-.stato-certificato-ricerca.valido {
-    color: #4ade80;
-    font-weight: 700;
-}
-
-.stato-certificato-ricerca.scaduto,
-.stato-certificato-ricerca.assente {
-    color: #fb7185;
-    font-weight: 700;
+    .access-form.inline-form {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
