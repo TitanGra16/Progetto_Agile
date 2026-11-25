@@ -302,6 +302,17 @@ a.feature-card:hover {
     min-width: 54rem;
 }
 
+.pricing-table th:last-child,
+.pricing-table td:last-child {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.pricing-table td:nth-child(2),
+.pricing-table td:nth-child(6) {
+    white-space: nowrap;
+}
+
 .data-table th,
 .data-table td {
     padding: 14px 12px;
@@ -330,6 +341,7 @@ a.feature-card:hover {
 .table-action {
     color: var(--accent);
     font-weight: 700;
+    white-space: nowrap;
     text-underline-offset: 3px;
 }
 

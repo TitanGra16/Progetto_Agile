@@ -30,7 +30,6 @@ final class TipoAbbonamentoRepositoryTest extends TestCase
     {
         $repository = new TipoAbbonamentoRepository($this->connessione);
         $dati = [
-            'codice' => 'TEST_PACK_' . bin2hex(random_bytes(4)),
             'nome' => 'Piano integrazione',
             'categoria' => 'PACCHETTO',
             'prezzo' => '85.00',

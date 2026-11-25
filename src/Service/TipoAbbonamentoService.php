@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Ladythelemons\Fitslot\Service;
 
 use Ladythelemons\Fitslot\Repository\TipoAbbonamentoRepository;
-use mysqli_sql_exception;
-
 class TipoAbbonamentoService
 {
     public const SERVIZI = [
@@ -16,8 +14,6 @@ class TipoAbbonamentoService
     ];
 
     private const SCONTO_STUDENTI = 20;
-    private const ERRORE_CODICE_DUPLICATO = 1062;
-
     public function __construct(private TipoAbbonamentoRepository $repository)
     {
     }
@@ -48,14 +44,7 @@ class TipoAbbonamentoService
             return $this->errore($verifica['errori']);
         }
 
-        try {
-            $id = $this->repository->crea($verifica['dati']);
-        } catch (mysqli_sql_exception $errore) {
-            if ($errore->getCode() === self::ERRORE_CODICE_DUPLICATO) {
-                return $this->errore(['codice' => 'Questo codice esiste già.']);
-            }
-            throw $errore;
-        }
+        $id = $this->repository->crea($verifica['dati']);
 
         return ['esito' => 'ok', 'messaggio' => 'Tipo di abbonamento creato.', 'errori' => [], 'id' => $id];
     }
@@ -66,8 +55,6 @@ class TipoAbbonamentoService
         if ($esistente === null) {
             return $this->errore(['id' => 'Tipo di abbonamento inesistente.']);
         }
-        // L'aggiornamento usa il codice già salvato.
-        $input['codice'] = $esistente['codice'];
         $verifica = $this->valida($input);
         if ($verifica['errori'] !== []) {
             return $this->errore($verifica['errori']);
@@ -80,14 +67,10 @@ class TipoAbbonamentoService
     public function valida(array $input): array
     {
         $errori = [];
-        $codice = strtoupper(self::testo($input['codice'] ?? null));
         $nome = self::testo($input['nome'] ?? null);
         $categoria = strtoupper(self::testo($input['categoria'] ?? null));
         $prezzoCentesimi = self::prezzoInCentesimi(self::testo($input['prezzo'] ?? null));
 
-        if (!preg_match('/^[A-Z0-9_]{2,40}$/D', $codice)) {
-            $errori['codice'] = 'Usa da 2 a 40 caratteri: lettere maiuscole, cifre e underscore.';
-        }
         if (strlen($nome) < 2 || strlen($nome) > 100) {
             $errori['nome'] = 'Il nome deve contenere da 2 a 100 caratteri.';
         }
@@ -152,7 +135,6 @@ class TipoAbbonamentoService
 
         return [
             'dati' => [
-                'codice' => $codice,
                 'nome' => $nome,
                 'categoria' => $categoria,
                 'prezzo' => $prezzoCentesimi === null ? null : self::formattaPrezzo($prezzoCentesimi),

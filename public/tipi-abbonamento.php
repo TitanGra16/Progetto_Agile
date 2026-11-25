@@ -154,10 +154,7 @@ $categorie = [
                                     }
                                     ?>
                                     <tr>
-                                        <th scope="row">
-                                            <?= escapeUe08($piano['nome']) ?>
-                                            <small><?= escapeUe08($piano['codice']) ?></small>
-                                        </th>
+                                        <th scope="row"><?= escapeUe08($piano['nome']) ?></th>
                                         <td><?= escapeUe08($piano['prezzo']) ?> €</td>
                                         <td>
                                             <?php if ($piano['durata_mesi'] === null): ?>
@@ -215,12 +212,6 @@ $categorie = [
                     <?php endif; ?>
 
                     <div class="access-field">
-                        <label for="codice">Codice del piano</label>
-                        <input id="codice" name="codice" maxlength="40" required
-                               value="<?= escapeUe08($modulo['codice'] ?? '') ?>" <?= $modificaId !== null ? 'readonly' : '' ?>>
-                    </div>
-
-                    <div class="access-field">
                         <label for="nome">Nome</label>
                         <input id="nome" name="nome" maxlength="100" value="<?= escapeUe08($modulo['nome'] ?? '') ?>" required>
                     </div>
@@ -241,19 +232,19 @@ $categorie = [
                         <input id="prezzo" name="prezzo" inputmode="decimal" value="<?= escapeUe08($modulo['prezzo'] ?? '') ?>" required>
                     </div>
 
-                    <div class="access-field">
+                    <div class="access-field" id="campo-ingressi">
                         <label for="ingressi">Numero di ingressi</label>
                         <input id="ingressi" name="ingressi_totali" type="number" min="1" max="1000" aria-describedby="aiuto-validita"
                                value="<?= escapeUe08($modulo['ingressi_totali'] ?? '') ?>">
                     </div>
 
-                    <div class="access-field">
+                    <div class="access-field" id="campo-durata">
                         <label for="durata">Durata (mesi)</label>
                         <input id="durata" name="durata_mesi" type="number" min="1" max="120" aria-describedby="aiuto-validita"
                                value="<?= escapeUe08($modulo['durata_mesi'] ?? '') ?>">
                     </div>
 
-                    <p class="access-hint form-wide" id="aiuto-validita">Compila gli ingressi per i piani a ingressi oppure la durata per i piani illimitati.</p>
+                    <p class="access-hint form-wide" id="aiuto-validita">Gli ingressi sono validi senza scadenza; la durata indica un abbonamento illimitato a tempo.</p>
 
                     <fieldset class="form-wide form-options">
                         <legend>Servizi inclusi</legend>
@@ -292,5 +283,47 @@ $categorie = [
             </section>
         </div>
     </main>
+<script>
+    const categoria = document.getElementById('categoria');
+    const campoIngressi = document.getElementById('campo-ingressi');
+    const campoDurata = document.getElementById('campo-durata');
+    const ingressi = document.getElementById('ingressi');
+    const durata = document.getElementById('durata');
+    const etichettaIngressi = campoIngressi.querySelector('label');
+
+    function aggiornaTipoAbbonamento() {
+        const tipo = categoria.value;
+        const pianoIngresso = tipo === 'SINGOLO' || tipo === 'PACCHETTO';
+
+        campoIngressi.hidden = !pianoIngresso;
+        campoDurata.hidden = pianoIngresso;
+        ingressi.disabled = !pianoIngresso;
+        durata.disabled = pianoIngresso;
+        ingressi.required = pianoIngresso;
+        durata.required = !pianoIngresso;
+
+        if (tipo === 'SINGOLO') {
+            ingressi.value = '1';
+            ingressi.readOnly = true;
+            etichettaIngressi.textContent = 'Numero di ingressi';
+        } else if (tipo === 'PACCHETTO') {
+            ingressi.readOnly = false;
+            if (ingressi.value === '1') {
+                ingressi.value = '';
+            }
+            etichettaIngressi.textContent = 'Numero di ingressi';
+        } else {
+            ingressi.readOnly = false;
+            durata.value = durata.value || '';
+        }
+
+        document.getElementById('aiuto-validita').textContent = pianoIngresso
+            ? 'I piani a ingressi sono validi senza scadenza.'
+            : 'Inserisci la durata in mesi; l’abbonamento sarà illimitato nel periodo indicato.';
+    }
+
+    categoria.addEventListener('change', aggiornaTipoAbbonamento);
+    aggiornaTipoAbbonamento();
+</script>
 </body>
 </html>
