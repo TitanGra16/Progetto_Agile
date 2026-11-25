@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Ladythelemons\Fitslot\Controller\RicercaIscrittoController;
 use Ladythelemons\Fitslot\DataModel\Utente;
 use Ladythelemons\Fitslot\Repository\UtenteRepository;
+use Ladythelemons\Fitslot\Repository\CertificatoMedicoRepository;
+use Ladythelemons\Fitslot\Service\CertificatoMedicoService;
 use Ladythelemons\Fitslot\Service\AutorizzazioneService;
 use Ladythelemons\Fitslot\Service\SessioneService;
 
@@ -19,10 +21,15 @@ if ($sessioneUtente->getIdUtente() === null) {
     exit;
 }
 
-if (!(new AutorizzazioneService())->haAccessoA(['RECEPTION'])) {
+$autorizzazione = new AutorizzazioneService();
+
+if (!$autorizzazione->haAccessoA(['RECEPTION'])) {
     http_response_code(403);
     exit('Accesso non autorizzato.');
 }
+
+// Solo gli utenti con ruolo RECEPTION possono gestire i certificati.
+$puoGestireCertificati = $autorizzazione->haRuolo('RECEPTION');
 
 $controllore = new RicercaIscrittoController();
 $pagina = $controllore->gestisciRichiesta($_SERVER['REQUEST_METHOD'], $_POST);
@@ -76,7 +83,10 @@ $pagina = $controllore->gestisciRichiesta($_SERVER['REQUEST_METHOD'], $_POST);
             </form>
 
             <?php if ($pagina['risultati'] !== []): ?>
-                <?php $archivio = new UtenteRepository(); ?>
+                <?php
+                    $archivio = new UtenteRepository();
+                    $archivioCertificati = new CertificatoMedicoRepository();
+                ?>
                 <div class="search-results" aria-live="polite">
                     <h2>Risultati della ricerca: <?= count($pagina['risultati']) ?></h2>
                 
@@ -87,6 +97,15 @@ $pagina = $controllore->gestisciRichiesta($_SERVER['REQUEST_METHOD'], $_POST);
                             } ?>
                             
                             <article class="result-card">
+                                <?php
+                                    $certificato = $archivioCertificati->trovaPerUtente(
+                                        (int) $utente->getId()
+                                    );
+
+                                    $statoCertificato = CertificatoMedicoService::stato(
+                                        $certificato['data_scadenza'] ?? null
+                                    );
+                                ?>
                                 <div>
                                     <h3><?= htmlspecialchars($utente->getNome(), ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars($utente->getCognome(), ENT_QUOTES, 'UTF-8') ?></h3>
                                     <p>Codice iscritto: <strong><?= (int) $utente->getId() ?></strong></p>
@@ -105,7 +124,25 @@ $pagina = $controllore->gestisciRichiesta($_SERVER['REQUEST_METHOD'], $_POST);
                                         <?php $stato = $archivio->getStatoIscritto((int) $utente->getId()); ?>
                                         <dt>Stato iscrizione: <?= htmlspecialchars($stato, ENT_QUOTES, 'UTF-8') ?></dt>
                                     </div>
+                                    <div>
+                                        <dt>
+                                            <strong>Certificato medico:</strong>
+                                            <span class="stato-certificato-ricerca <?= strtolower($statoCertificato) ?>">
+                                                <?= htmlspecialchars($statoCertificato, ENT_QUOTES, 'UTF-8') ?>
+                                            </span>
+                                        </dt>
+                                    </div>
                                 </dl>
+                                <?php if ($puoGestireCertificati): ?>
+
+                                    <a
+                                        class="link-certificato"
+                                        href="certificati-medici.php?utente_id=<?= (int) $utente->getId() ?>"
+                                    >
+                                        Gestisci certificato →
+                                    </a>
+
+                                <?php endif; ?>
                             </article>
                         <?php endforeach; ?>
                     </div>

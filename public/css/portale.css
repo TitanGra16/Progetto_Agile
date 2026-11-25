@@ -387,3 +387,62 @@ a.feature-card:hover {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
+
+/* UE-53: avviso certificato medico assente o scaduto */
+
+.avviso-certificato {
+    background-color: #fff1f2;
+    border: 2px solid #e11d48;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 15px;
+    color: #881337;
+}
+
+.avviso-certificato strong {
+    color: #be123c;
+    font-size: 17px;
+}
+
+.avviso-certificato p {
+    color: #881337;
+    margin-top: 12px;
+}
+
+/* UE-53: spazio tra informazioni personali e certificato medico */
+
+.panel-certificato {
+    margin-top: 24px;
+}
+
+/* UE-53: stato del certificato valido */
+
+.stato-certificato-valido {
+    color: #4ade80;
+    font-weight: 700;
+}
+
+/* UE-53: link gestione certificato nella ricerca iscritti */
+
+.link-certificato {
+    display: inline-block;
+    margin-top: 14px;
+    color: #ff7a15;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.link-certificato:hover {
+    text-decoration: underline;
+}
+
+.stato-certificato-ricerca.valido {
+    color: #4ade80;
+    font-weight: 700;
+}
+
+.stato-certificato-ricerca.scaduto,
+.stato-certificato-ricerca.assente {
+    color: #fb7185;
+    font-weight: 700;
+}
