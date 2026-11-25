@@ -51,10 +51,11 @@ if (!$autorizzazione->haAccessoA(['GESTORE'])) {
                 <p>Gestisci il listino e i piani di abbonamento.</p>
                 <span class="card-link">Apri gestione listino &rarr;</span>
             </a>
-            <article class="feature-card">
+            <a class="feature-card" href="aggiunge-sala.php">
                 <span class="feature-tag">GESTORE</span>
                 <h3>Aggiungi sala</h3>
                 <p>Aggiungi una nuova sala al sistema.</p>
+                <span class="card-link">Apri gestione sale &rarr;</span>
             </a>
             <article class="unavailable">
                 <span class="feature-tag">GESTORE</span>

@@ -53,15 +53,9 @@ Usare `composer install`, non `composer update`, per installare le versioni del 
 composer db:setup
 ```
 
-Questo è un comando che modifica il database configurato: eseguirlo consapevolmente, dopo verifica della configurazione e backup dei dati importanti. Non viene eseguito da installazione, avvio del server o test unitari.
+**A ogni esecuzione, `composer db:setup` elimina il database locale `fitslot` con tutti i suoi dati e lo ricrea.** Verifica la configurazione e fai un backup dei dati importanti prima di eseguire il comando. Installazione, avvio del server e test unitari non eseguono il reset.
 
-Lo script legge la configurazione condivisa con l'applicazione, crea il database solo se manca ed esegue tutti gli eventuali file SQL: prima quelli in `database/migrations/`, poi quelli in `database/seed/`, ordinati per nome.
-
-**Nel setup attuale non sono presenti SQL delle User Story.** Se le cartelle non esistono o non contengono SQL, viene preparato soltanto il database e il conteggio dei file eseguiti e zero. Le tabelle applicative saranno aggiunte con le rispettive User Story; il comando non le inventa e non le ricrea.
-
-Non viene mantenuto uno storico: tutti i file presenti vengono rieseguiti a ogni `composer db:setup`. Non eseguire due setup contemporaneamente. Prima di aggiungere un SQL, verificare con il gruppo che sia ripetibile: ad esempio, `CREATE TABLE IF NOT EXISTS` evita di ricreare una tabella e un seed deve evitare inserimenti duplicati.
-
-Modificare un `CREATE TABLE IF NOT EXISTS` non aggiorna una tabella esistente. Eventuali futuri `ALTER TABLE` possono fallire alla seconda esecuzione: concordare una procedura specifica con il gruppo prima di inserirli fra gli SQL rieseguiti automaticamente.
+Lo script usa la configurazione dell'applicazione. Esegue prima i file SQL di `database/migrations/` e poi quelli di `database/seed/`, in ordine di nome all'interno di ciascuna cartella. Esegui un solo setup alla volta.
 
 ### Errori SQL
 
