@@ -31,14 +31,32 @@ if ($utente === null) {
 $autorizzazione = new AutorizzazioneService();
 $ruoli = $autorizzazione->getRuoliUtente();
 
-// UE-53: recupero il certificato medico dell'utente autenticato
-$certificatoRepository = new CertificatoMedicoRepository();
-$certificato = $certificatoRepository->trovaPerUtente($idUtente);
+// UE-53: recupero il certificato solo per gli ISCRITTI.
+$certificato = null;
+$statoCertificato = null;
+$erroreCertificato = false;
 
-// Calcolo lo stato del certificato usando il Service della UE-05
-$statoCertificato = CertificatoMedicoService::stato(
-    $certificato['data_scadenza'] ?? null
-);
+if (in_array('ISCRITTO', $ruoli, true)) {
+    try {
+        $certificatoRepository = new CertificatoMedicoRepository();
+
+        $certificato = $certificatoRepository->trovaPerUtente(
+            $idUtente
+        );
+
+        // Riutilizzo la logica della UE-05 per calcolare lo stato.
+        $statoCertificato = CertificatoMedicoService::stato(
+            $certificato['data_scadenza'] ?? null
+        );
+
+    } catch (\Throwable $errore) {
+        // Il profilo deve restare accessibile anche se
+        // il recupero del certificato non riesce.
+        error_log('UE-53 - Errore recupero certificato: ' . $errore->getMessage());
+
+        $erroreCertificato = true;
+    }
+}
 
 ?>
 
@@ -113,7 +131,15 @@ $statoCertificato = CertificatoMedicoService::stato(
 <section class="panel panel-certificato" aria-labelledby="titolo-certificato">
     <h2 id="titolo-certificato">Il mio certificato medico</h2>
 
-    <?php if ($statoCertificato === 'VALIDO'): ?>
+    <?php if ($erroreCertificato): ?>
+
+        <p role="status">
+            Non è stato possibile recuperare lo stato
+            del certificato medico.
+            Riprova più tardi.
+        </p>
+
+    <?php elseif ($statoCertificato === 'VALIDO'): ?>
 
         <p>
             <strong>Stato:</strong>
@@ -145,7 +171,7 @@ $statoCertificato = CertificatoMedicoService::stato(
             </p>
         </div>
 
-    <?php else: ?>
+    <?php elseif ($statoCertificato === 'ASSENTE'): ?>
 
         <div class="avviso-certificato" role="alert">
             <strong>ATTENZIONE: CERTIFICATO MEDICO ASSENTE!</strong>
@@ -160,6 +186,14 @@ $statoCertificato = CertificatoMedicoService::stato(
                 Consegnalo il prima possibile in reception.
             </p>
         </div>
+
+    <?php else: ?>
+
+        <p role="status">
+            Lo stato del certificato medico non è
+            ancora disponibile.
+            Rivolgiti alla Reception per informazioni.
+        </p>
 
     <?php endif; ?>
 

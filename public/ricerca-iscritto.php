@@ -21,10 +21,15 @@ if ($sessioneUtente->getIdUtente() === null) {
     exit;
 }
 
-if (!(new AutorizzazioneService())->haAccessoA(['RECEPTION'])) {
+$autorizzazione = new AutorizzazioneService();
+
+if (!$autorizzazione->haAccessoA(['RECEPTION'])) {
     http_response_code(403);
     exit('Accesso non autorizzato.');
 }
+
+// Solo gli utenti con ruolo RECEPTION possono gestire i certificati.
+$puoGestireCertificati = $autorizzazione->haRuolo('RECEPTION');
 
 $controllore = new RicercaIscrittoController();
 $pagina = $controllore->gestisciRichiesta($_SERVER['REQUEST_METHOD'], $_POST);
@@ -128,9 +133,16 @@ $pagina = $controllore->gestisciRichiesta($_SERVER['REQUEST_METHOD'], $_POST);
                                         </dt>
                                     </div>
                                 </dl>
-                                <a class="link-certificato" href="certificati-medici.php?utente_id=<?= (int) $utente->getId() ?>">
-                                    Gestisci certificato →
-                                </a>
+                                <?php if ($puoGestireCertificati): ?>
+
+                                    <a
+                                        class="link-certificato"
+                                        href="certificati-medici.php?utente_id=<?= (int) $utente->getId() ?>"
+                                    >
+                                        Gestisci certificato →
+                                    </a>
+
+                                <?php endif; ?>
                             </article>
                         <?php endforeach; ?>
                     </div>
