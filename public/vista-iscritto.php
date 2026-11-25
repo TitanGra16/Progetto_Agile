@@ -58,6 +58,21 @@ if (!$autorizzazione->haAccessoA(['ISCRITTO'])) {
                 <span class="card-link">Apri il mio profilo →</span>
             </a>
 
+            <a class="feature-card" href="carica-certificato.php">
+                <span class="feature-tag">ISCRITTO</span>
+
+                <h3>Carica certificato medico</h3>
+
+                <p>
+                    Carica il tuo certificato medico in formato PDF
+                    e invialo alla Reception per la verifica.
+                </p>
+
+                <span class="card-link">
+                    Carica certificato →
+                </span>
+            </a>
+
         </section>
     </main>
     <footer class="site-footer">FitSlot · Area iscritto</footer>

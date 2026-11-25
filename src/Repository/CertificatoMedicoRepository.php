@@ -76,4 +76,36 @@ class CertificatoMedicoRepository
 
         return $precedente['nome_file'] ?? null;
     }
+
+    /**
+     * UE-51: recupera il certificato caricato dall'iscritto
+     * e non ancora verificato dalla Reception.
+     */
+    public function trovaInAttesaPerUtente(int $utenteId): ?array
+    {
+        $risultato = $this->connessione->execute_query(
+            'SELECT id, utente_id, nome_file, caricato_at
+             FROM certificati_medici_in_attesa
+             WHERE utente_id = ?',
+            [$utenteId]
+        );
+
+        return $risultato->fetch_assoc() ?: null;
+    }
+
+    /**
+     * UE-51: registra un nuovo certificato in attesa.
+     * Non modifica i certificati già verificati.
+     */
+    public function salvaInAttesa(
+        int $utenteId,
+        string $nomeFile
+    ): void {
+        $this->connessione->execute_query(
+            'INSERT INTO certificati_medici_in_attesa
+                (utente_id, nome_file)
+             VALUES (?, ?)',
+            [$utenteId, $nomeFile]
+        );
+    }
 }
