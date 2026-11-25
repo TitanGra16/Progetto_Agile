@@ -2,208 +2,141 @@
 
 declare(strict_types=1);
 
-
-use Ladythelemons\Fitslot\Repository\UtenteRepository;
 use Ladythelemons\Fitslot\Repository\CertificatoMedicoRepository;
+use Ladythelemons\Fitslot\Repository\UtenteRepository;
+use Ladythelemons\Fitslot\Service\AutorizzazioneService;
 use Ladythelemons\Fitslot\Service\CertificatoMedicoService;
 use Ladythelemons\Fitslot\Service\SessioneService;
-use Ladythelemons\Fitslot\Service\AutorizzazioneService;
 
 require_once dirname(__DIR__) . '/bootstrap.php';
 
 $sessione = new SessioneService();
 $idUtente = $sessione->getIdUtente();
 
-/* verifico che l'utente sia loggato altrimento lo mando alla pagina di login*/
 if ($idUtente === null) {
     header('Location: login.php');
     exit;
 }
 
-$repository = new UtenteRepository();
-$utente = $repository->trovaPerId($idUtente);
+$utente = (new UtenteRepository())->trovaPerId($idUtente);
 
 if ($utente === null) {
     http_response_code(404);
     exit('Profilo utente non trovato.');
 }
-// Recupero i ruoli associati all'utente autenticato
-$autorizzazione = new AutorizzazioneService();
-$ruoli = $autorizzazione->getRuoliUtente();
 
-// UE-53: recupero il certificato solo per gli ISCRITTI.
-$certificato = null;
+$ruoli = (new AutorizzazioneService())->getRuoliUtente();
+$mostraCertificato = in_array('ISCRITTO', $ruoli, true);
 $statoCertificato = null;
-$erroreCertificato = false;
+$scadenza = null;
 
-if (in_array('ISCRITTO', $ruoli, true)) {
+if ($mostraCertificato) {
     try {
-        $certificatoRepository = new CertificatoMedicoRepository();
-
-        $certificato = $certificatoRepository->trovaPerUtente(
-            $idUtente
-        );
-
-        // Riutilizzo la logica della UE-05 per calcolare lo stato.
-        $statoCertificato = CertificatoMedicoService::stato(
-            $certificato['data_scadenza'] ?? null
-        );
-
-    } catch (\Throwable $errore) {
-        // Il profilo deve restare accessibile anche se
-        // il recupero del certificato non riesce.
-        error_log('UE-53 - Errore recupero certificato: ' . $errore->getMessage());
-
-        $erroreCertificato = true;
+        $certificato = (new CertificatoMedicoRepository())->trovaPerUtente($idUtente);
+        $dataScadenza = $certificato['data_scadenza'] ?? null;
+        $scadenza = $dataScadenza === null ? null : new DateTimeImmutable($dataScadenza);
+        $statoCertificato = CertificatoMedicoService::stato($dataScadenza);
+    } catch (Throwable $errore) {
+        error_log('Profilo: errore recupero certificato: ' . $errore->getMessage());
     }
 }
 
+[$etichettaCertificato, $indicazioneCertificato] = match ($statoCertificato) {
+    'VALIDO' => ['Valido', null],
+    'SCADUTO' => ['Scaduto', 'Consegna un certificato aggiornato in reception per continuare a usare i servizi del centro.'],
+    'ASSENTE' => ['Assente', 'Consegna il tuo certificato medico in reception per poter usare i servizi del centro.'],
+    default => ['Stato non disponibile', 'Riprova più tardi o chiedi informazioni in reception.'],
+};
 ?>
-
-
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Il mio profilo - FitSlot</title>
-
     <link rel="stylesheet" href="css/portale.css">
+    <link rel="stylesheet" href="css/area-iscritto.css">
+    <link rel="stylesheet" href="css/profilo.css">
 </head>
-
-<body>
+<body class="member-page">
     <header class="topbar">
-        <a class="wordmark" href="index.php">
-            FIT<span>SLOT</span>
-        </a>
-
+        <a class="wordmark" href="index.php" aria-label="FitSlot, pagina iniziale">FIT<span>SLOT</span></a>
         <nav aria-label="Navigazione principale">
-            <a href="homepage.php">Torna nell'area personale</a>
+            <a href="homepage.php">Le mie aree</a>
+            <form class="logout-form" method="post" action="logout.php">
+                <button type="submit">Esci</button>
+            </form>
         </nav>
     </header>
 
-
     <main class="page-shell">
+        <header class="profile-heading">
+            <?php if ($mostraCertificato): ?>
+                <a class="profile-back" href="vista-iscritto.php">
+                    <span aria-hidden="true">&larr;</span> Area iscritto
+                </a>
+            <?php endif; ?>
+            <h1>Il mio <span>profilo</span></h1>
+        </header>
 
-        <div class="page-heading">
-            <span class="eyebrow">Area personale</span>
-            <h1>Il mio profilo</h1>
-            <p>Visualizza le informazioni del tuo account.</p>
+        <div class="profile-grid">
+            <section class="panel profile-panel" aria-labelledby="dati-personali">
+                <h2 id="dati-personali">Dati personali</h2>
 
-    <section class="panel">
+                <dl class="profile-details">
+                    <div>
+                        <dt>Nome</dt>
+                        <dd><?= htmlspecialchars($utente['nome'], ENT_QUOTES, 'UTF-8') ?></dd>
+                    </div>
+                    <div>
+                        <dt>Cognome</dt>
+                        <dd><?= htmlspecialchars($utente['cognome'], ENT_QUOTES, 'UTF-8') ?></dd>
+                    </div>
+                    <div class="profile-detail-wide">
+                        <dt>Indirizzo email</dt>
+                        <dd><?= htmlspecialchars($utente['email'], ENT_QUOTES, 'UTF-8') ?></dd>
+                    </div>
+                    <div class="profile-detail-wide">
+                        <dt>Ruoli</dt>
+                        <dd class="profile-roles">
+                            <?php if ($ruoli === []): ?>
+                                Nessun ruolo assegnato
+                            <?php else: ?>
+                                <?php foreach ($ruoli as $ruolo): ?>
+                                    <span><?= htmlspecialchars(ucfirst(strtolower($ruolo)), ENT_QUOTES, 'UTF-8') ?></span>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </dd>
+                    </div>
+                </dl>
 
-    <h2>Informazioni personali</h2>
+                <a class="button primary member-action" href="modifica-credenziali.php">
+                    Modifica credenziali <span aria-hidden="true">&rarr;</span>
+                </a>
+            </section>
 
-    <p>
-        <strong>Nome:</strong>
-        <?= htmlspecialchars($utente['nome'], ENT_QUOTES, 'UTF-8') ?>
-    </p>
+            <?php if ($mostraCertificato): ?>
+                <section class="panel profile-panel profile-certificate" aria-labelledby="titolo-certificato">
+                    <div class="member-certificate-heading">
+                        <h2 id="titolo-certificato">Certificato medico</h2>
+                        <span class="member-status <?= strtolower($statoCertificato ?? 'indisponibile') ?>">
+                            <?= $etichettaCertificato ?>
+                        </span>
+                    </div>
 
-    <p>
-        <strong>Cognome:</strong>
-        <?= htmlspecialchars($utente['cognome'], ENT_QUOTES, 'UTF-8') ?>
-    </p>
+                    <?php if ($scadenza !== null): ?>
+                        <dl class="profile-expiry">
+                            <dt>Data di scadenza</dt>
+                            <dd><time datetime="<?= $scadenza->format('Y-m-d') ?>"><?= $scadenza->format('d/m/Y') ?></time></dd>
+                        </dl>
+                    <?php endif; ?>
 
-    <p>
-        <strong>Email:</strong>
-        <?= htmlspecialchars($utente['email'], ENT_QUOTES, 'UTF-8') ?>
-    </p>
-                
-    <p>
-        <strong>Ruoli:</strong>
-        <?= htmlspecialchars(
-            $ruoli !== [] ? implode(', ', $ruoli) : 'Nessun ruolo assegnato',
-            ENT_QUOTES,
-            'UTF-8'
-        ) ?>
-    </p>
-
-    <a href="modifica-credenziali.php" class="button primary">
-        Modifica credenziali
-    </a>
-
-</section>
-
-<?php if (in_array('ISCRITTO', $ruoli, true)): ?>
-
-<section class="panel panel-certificato" aria-labelledby="titolo-certificato">
-    <h2 id="titolo-certificato">Il mio certificato medico</h2>
-
-    <?php if ($erroreCertificato): ?>
-
-        <p role="status">
-            Non è stato possibile recuperare lo stato
-            del certificato medico.
-            Riprova più tardi.
-        </p>
-
-    <?php elseif ($statoCertificato === 'VALIDO'): ?>
-
-        <p>
-            <strong>Stato:</strong>
-            <span class="stato-certificato-valido">Valido</span>
-        </p>
-
-        <p>
-            <strong>Data di scadenza:</strong>
-            <?= htmlspecialchars(
-                (new DateTimeImmutable($certificato['data_scadenza']))->format('d/m/Y'),
-                ENT_QUOTES,
-                'UTF-8'
-            ) ?>
-        </p>
-
-    <?php elseif ($statoCertificato === 'SCADUTO'): ?>
-
-        <div class="avviso-certificato" role="alert">
-            <strong>ATTENZIONE: CERTIFICATO SCADUTO!</strong>
-
-            <p>
-                Il tuo certificato medico è scaduto.
-                Consegna un nuovo certificato in reception.
-            </p>
-
-            <p>
-                Senza un certificato medico valido
-                non potrai utilizzare i servizi della palestra.
-            </p>
+                    <?php if ($indicazioneCertificato !== null): ?>
+                        <p><?= $indicazioneCertificato ?></p>
+                    <?php endif; ?>
+                </section>
+            <?php endif; ?>
         </div>
-
-    <?php elseif ($statoCertificato === 'ASSENTE'): ?>
-
-        <div class="avviso-certificato" role="alert">
-            <strong>ATTENZIONE: CERTIFICATO MEDICO ASSENTE!</strong>
-
-            <p>
-                Non hai ancora consegnato il certificato medico.
-            </p>
-
-            <p>
-                Senza un certificato medico valido
-                non potrai utilizzare i servizi della palestra.
-                Consegnalo il prima possibile in reception.
-            </p>
-        </div>
-
-    <?php else: ?>
-
-        <p role="status">
-            Lo stato del certificato medico non è
-            ancora disponibile.
-            Rivolgiti alla Reception per informazioni.
-        </p>
-
-    <?php endif; ?>
-
-</section>
-
-<?php endif; ?>
-
-        </div>
-
     </main>
-
 </body>
 </html>
