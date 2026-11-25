@@ -82,13 +82,13 @@ final class AutorizzazioneServiceTest extends TestCase
         $this->assertFalse($servizio->haAccessoA(['GESTORE']));
     }
 
-    public function testGestoreAccedeAQualsiasiVista(): void
+    public function testGestoreAccedeSoloAllaVistaGestore(): void
     {
         $servizio = $this->servizioConRuoli(['GESTORE']);
 
-        $this->assertTrue($servizio->haAccessoA(['ISCRITTO']));
-        $this->assertTrue($servizio->haAccessoA(['RECEPTION']));
-        $this->assertTrue($servizio->haAccessoA(['ISTRUTTORE']));
+        $this->assertFalse($servizio->haAccessoA(['ISCRITTO']));
+        $this->assertFalse($servizio->haAccessoA(['RECEPTION']));
+        $this->assertFalse($servizio->haAccessoA(['ISTRUTTORE']));
         $this->assertTrue($servizio->haAccessoA(['GESTORE']));
     }
 

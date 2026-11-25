@@ -42,18 +42,12 @@ class AutorizzazioneService
 
     /**
      * Verifica se l'utente può accedere a una vista.
-     * Il gestore può accedere a tutte le viste del sistema.
      *
      * @param string[] $ruoliRichiesti Ruoli abilitati alla vista.
      */
     public function haAccessoA(array $ruoliRichiesti): bool
     {
         $ruoliUtente = $this->getRuoliUtente();
-
-        if (in_array('GESTORE', $ruoliUtente, true)) {
-            return true;
-        }
-
         return count(array_intersect($ruoliUtente, $ruoliRichiesti)) > 0;
     }
 }

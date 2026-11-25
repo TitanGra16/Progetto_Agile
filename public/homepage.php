@@ -15,7 +15,6 @@ if ($sessione->getIdUtente() === null) {
 }
 
 $ruoli = (new AutorizzazioneService())->getRuoliUtente();
-$isGestore = in_array('GESTORE', $ruoli, true);
 $aree = [
     'GESTORE' => [
         'percorso' => 'vista-gestore.php',
@@ -40,7 +39,7 @@ $aree = [
 ];
 $areeVisibili = array_filter(
     $aree,
-    static fn (string $ruolo): bool => $isGestore || in_array($ruolo, $ruoli, true),
+    static fn (string $ruolo): bool => in_array($ruolo, $ruoli, true),
     ARRAY_FILTER_USE_KEY
 );
 ?>
@@ -67,11 +66,6 @@ $areeVisibili = array_filter(
     <main class="page-shell">
         <header class="dashboard-heading">
             <h1>Le mie <span>aree</span></h1>
-            <?php if ($isGestore): ?>
-                <a class="button secondary member-action" href="tipi-abbonamento.php">
-                    Listino abbonamenti <span aria-hidden="true">&rarr;</span>
-                </a>
-            <?php endif; ?>
         </header>
 
         <?php if ($areeVisibili === []): ?>
