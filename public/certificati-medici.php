@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Ladythelemons\Fitslot\Controller\CertificatoMedicoController;
+use Ladythelemons\Fitslot\Controller\RicercaIscrittoController;
+use Ladythelemons\Fitslot\DataModel\Utente;
 use Ladythelemons\Fitslot\Service\AutorizzazioneService;
 use Ladythelemons\Fitslot\Service\TokenCsrf;
 
@@ -31,29 +33,39 @@ if ($metodo === 'POST'
     exit('Richiesta non valida. Ricarica la pagina e riprova.');
 }
 
-try {
-    $controller = new CertificatoMedicoController();
-    $pagina = $controller->gestisciRichiesta(
-        $metodo,
-        $metodo === 'POST' ? $_POST : $_GET,
-        $_FILES['certificato_pdf'] ?? []
-    );
-} catch (mysqli_sql_exception) {
-    http_response_code(503);
-    exit('Il servizio dei certificati medici non è disponibile.');
+$cercaIscritto = $metodo === 'POST' && ($_POST['azione'] ?? null) === 'cerca';
+$ricerca = null;
+$pagina = [];
+
+if ($cercaIscritto) {
+    $ricerca = (new RicercaIscrittoController())->gestisciRichiesta($metodo, $_POST);
+} else {
+    try {
+        $controller = new CertificatoMedicoController();
+        $pagina = $controller->gestisciRichiesta(
+            $metodo,
+            $metodo === 'POST' ? $_POST : $_GET,
+            $_FILES['certificato_pdf'] ?? []
+        );
+    } catch (mysqli_sql_exception) {
+        http_response_code(503);
+        exit('Il servizio dei certificati medici non è disponibile.');
+    }
 }
 
-if ($pagina['salvato']) {
-    $_SESSION['certificato_salvato_utente'] = $pagina['utente_id'];
-    header('Location: certificati-medici.php?utente_id=' . $pagina['utente_id'], true, 303);
+$idIscritto = $pagina['utente_id'] ?? null;
+if ($pagina['salvato'] ?? false) {
+    $_SESSION['certificato_salvato_utente'] = $idIscritto;
+    header('Location: certificati-medici.php?utente_id=' . $idIscritto, true, 303);
     exit;
 }
 
-$dati = $pagina['dati'];
+$dati = $pagina['dati'] ?? null;
+$erroreCertificato = $pagina['errore'] ?? null;
 $certificato = $dati['certificato'] ?? null;
 $salvataggioRiuscito = $metodo === 'GET'
     && $dati !== null
-    && ($_SESSION['certificato_salvato_utente'] ?? null) === $pagina['utente_id'];
+    && ($_SESSION['certificato_salvato_utente'] ?? null) === $idIscritto;
 
 if ($salvataggioRiuscito) {
     unset($_SESSION['certificato_salvato_utente']);
@@ -86,25 +98,63 @@ $scadenzaModulo = is_string($scadenzaInviata) ? $scadenzaInviata : '';
     <main class="page-shell">
         <header class="dashboard-heading">
             <h1>Certificati <span>medici</span></h1>
-            <a class="button secondary member-action" href="ricerca-iscritto.php">
-                Cerca iscritto <span aria-hidden="true">&rarr;</span>
-            </a>
         </header>
 
-        <section class="panel wide-panel" aria-label="Seleziona iscritto">
-            <form class="access-form inline-form" method="get" action="certificati-medici.php">
+        <section class="panel wide-panel" aria-label="Ricerca iscritto">
+            <form class="access-form inline-form" method="post" action="certificati-medici.php">
+                <input type="hidden" name="azione" value="cerca">
+                <input type="hidden" name="token_csrf" value="<?= htmlspecialchars($tokenCsrf, ENT_QUOTES, 'UTF-8') ?>">
                 <div class="access-field">
-                    <label for="utente-id">Codice iscritto</label>
-                    <input id="utente-id" name="utente_id" type="number" min="1"
-                           value="<?= $pagina['utente_id'] ?? '' ?>" required>
+                    <label for="termine">Nome, cognome o codice iscritto</label>
+                    <input id="termine" name="termine" type="search" maxlength="100" placeholder="Es. Rossi o 42"
+                           value="<?= htmlspecialchars($ricerca['termine'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
+                           required>
                 </div>
-                <button class="button primary access-action" type="submit">Carica iscritto</button>
+                <button class="button primary access-action" type="submit">Cerca</button>
             </form>
 
-            <?php if ($pagina['errore'] !== null && $dati === null): ?>
-                <p class="access-message access-error" role="alert"><?= htmlspecialchars($pagina['errore'], ENT_QUOTES, 'UTF-8') ?></p>
+            <?php if (($ricerca['messaggio'] ?? '') !== ''): ?>
+                <?php $nessunRisultato = $ricerca['esito'] === 'non_trovato'; ?>
+                <p class="access-message<?= $nessunRisultato ? '' : ' access-error' ?>" role="<?= $nessunRisultato ? 'status' : 'alert' ?>">
+                    <?= htmlspecialchars($ricerca['messaggio'], ENT_QUOTES, 'UTF-8') ?>
+                </p>
+            <?php elseif ($erroreCertificato !== null && $dati === null): ?>
+                <p class="access-message access-error" role="alert"><?= htmlspecialchars($erroreCertificato, ENT_QUOTES, 'UTF-8') ?></p>
             <?php endif; ?>
         </section>
+
+        <?php if (($ricerca['risultati'] ?? []) !== []): ?>
+            <section class="search-results" aria-labelledby="risultati-ricerca">
+                <h2 id="risultati-ricerca">Risultati della ricerca (<?= count($ricerca['risultati']) ?>)</h2>
+
+                <div class="result-list">
+                    <?php foreach ($ricerca['risultati'] as $utente): ?>
+                        <?php
+                        if (!$utente instanceof Utente) {
+                            continue;
+                        }
+
+                        $idRisultato = (int) $utente->getId();
+                        $nomeCompleto = $utente->getNome() . ' ' . $utente->getCognome();
+                        ?>
+                        <article class="result-card">
+                            <header class="result-card-heading">
+                                <div>
+                                    <h3><?= htmlspecialchars($nomeCompleto, ENT_QUOTES, 'UTF-8') ?></h3>
+                                    <p>
+                                        Codice iscritto <strong><?= $idRisultato ?></strong>
+                                        · Data di nascita <?= htmlspecialchars($utente->getDataNascita(), ENT_QUOTES, 'UTF-8') ?>
+                                    </p>
+                                </div>
+                                <a class="button secondary member-action" href="certificati-medici.php?utente_id=<?= $idRisultato ?>">
+                                    Gestisci certificato <span aria-hidden="true">&rarr;</span>
+                                </a>
+                            </header>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+        <?php endif; ?>
 
         <?php if ($dati !== null): ?>
             <?php $statoCertificato = strtolower($dati['stato']); ?>
@@ -116,7 +166,7 @@ $scadenzaModulo = is_string($scadenzaInviata) ? $scadenzaInviata : '';
                     </header>
                     <p class="certificate-member">
                         <strong><?= htmlspecialchars($dati['utente']['nome'] . ' ' . $dati['utente']['cognome'], ENT_QUOTES, 'UTF-8') ?></strong>
-                        · Codice <?= $pagina['utente_id'] ?>
+                        · Codice <?= $idIscritto ?>
                     </p>
 
                     <?php if ($salvataggioRiuscito): ?>
@@ -152,13 +202,13 @@ $scadenzaModulo = is_string($scadenzaInviata) ? $scadenzaInviata : '';
                 <section class="panel certificate-panel" aria-labelledby="salva-certificato">
                     <h2 id="salva-certificato"><?= $certificato === null ? 'Registra certificato' : 'Aggiorna certificato' ?></h2>
 
-                    <?php if ($pagina['errore'] !== null): ?>
-                        <p class="access-message access-error" role="alert"><?= htmlspecialchars($pagina['errore'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php if ($erroreCertificato !== null): ?>
+                        <p class="access-message access-error" role="alert"><?= htmlspecialchars($erroreCertificato, ENT_QUOTES, 'UTF-8') ?></p>
                     <?php endif; ?>
 
                     <form class="access-form" method="post" action="certificati-medici.php" enctype="multipart/form-data">
                         <input type="hidden" name="token_csrf" value="<?= htmlspecialchars($tokenCsrf, ENT_QUOTES, 'UTF-8') ?>">
-                        <input type="hidden" name="utente_id" value="<?= $pagina['utente_id'] ?>">
+                        <input type="hidden" name="utente_id" value="<?= $idIscritto ?>">
 
                         <div class="access-field">
                             <label for="scadenza">Data di scadenza</label>
