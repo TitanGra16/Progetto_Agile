@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 
 use Ladythelemons\Fitslot\Repository\UtenteRepository;
+use Ladythelemons\Fitslot\Repository\CertificatoMedicoRepository;
+use Ladythelemons\Fitslot\Service\CertificatoMedicoService;
 use Ladythelemons\Fitslot\Service\SessioneService;
 use Ladythelemons\Fitslot\Service\AutorizzazioneService;
 
@@ -28,6 +30,15 @@ if ($utente === null) {
 // Recupero i ruoli associati all'utente autenticato
 $autorizzazione = new AutorizzazioneService();
 $ruoli = $autorizzazione->getRuoliUtente();
+
+// UE-53: recupero il certificato medico dell'utente autenticato
+$certificatoRepository = new CertificatoMedicoRepository();
+$certificato = $certificatoRepository->trovaPerUtente($idUtente);
+
+// Calcolo lo stato del certificato usando il Service della UE-05
+$statoCertificato = CertificatoMedicoService::stato(
+    $certificato['data_scadenza'] ?? null
+);
 
 ?>
 
@@ -96,6 +107,65 @@ $ruoli = $autorizzazione->getRuoliUtente();
     </a>
 
 </section>
+
+<?php if (in_array('ISCRITTO', $ruoli, true)): ?>
+
+<section class="panel panel-certificato" aria-labelledby="titolo-certificato">
+    <h2 id="titolo-certificato">Il mio certificato medico</h2>
+
+    <?php if ($statoCertificato === 'VALIDO'): ?>
+
+        <p>
+            <strong>Stato:</strong>
+            <span class="stato-certificato-valido">Valido</span>
+        </p>
+
+        <p>
+            <strong>Data di scadenza:</strong>
+            <?= htmlspecialchars(
+                (new DateTimeImmutable($certificato['data_scadenza']))->format('d/m/Y'),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>
+        </p>
+
+    <?php elseif ($statoCertificato === 'SCADUTO'): ?>
+
+        <div class="avviso-certificato" role="alert">
+            <strong>ATTENZIONE: CERTIFICATO SCADUTO!</strong>
+
+            <p>
+                Il tuo certificato medico è scaduto.
+                Consegna un nuovo certificato in reception.
+            </p>
+
+            <p>
+                Senza un certificato medico valido
+                non potrai utilizzare i servizi della palestra.
+            </p>
+        </div>
+
+    <?php else: ?>
+
+        <div class="avviso-certificato" role="alert">
+            <strong>ATTENZIONE: CERTIFICATO MEDICO ASSENTE!</strong>
+
+            <p>
+                Non hai ancora consegnato il certificato medico.
+            </p>
+
+            <p>
+                Senza un certificato medico valido
+                non potrai utilizzare i servizi della palestra.
+                Consegnalo il prima possibile in reception.
+            </p>
+        </div>
+
+    <?php endif; ?>
+
+</section>
+
+<?php endif; ?>
 
         </div>
 
