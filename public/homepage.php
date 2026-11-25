@@ -35,7 +35,7 @@ $aree = [
     'ISTRUTTORE' => [
         'percorso' => 'vista-istruttore.php',
         'titolo' => 'Area istruttore',
-        'descrizione' => null,
+        'descrizione' => 'Spazio dedicato alle lezioni e alle disponibilità degli istruttori.',
     ],
 ];
 $areeVisibili = array_filter(
@@ -81,9 +81,7 @@ $areeVisibili = array_filter(
                 <?php foreach ($areeVisibili as $area): ?>
                     <a class="feature-card dashboard-card" href="<?= $area['percorso'] ?>">
                         <h2><?= $area['titolo'] ?></h2>
-                        <?php if ($area['descrizione'] !== null): ?>
-                            <p><?= $area['descrizione'] ?></p>
-                        <?php endif; ?>
+                        <p><?= $area['descrizione'] ?></p>
                         <span class="dashboard-card-arrow" aria-hidden="true">&rarr;</span>
                     </a>
                 <?php endforeach; ?>
