@@ -39,7 +39,8 @@ $aree = [
 ];
 $areeVisibili = array_filter(
     $aree,
-    static fn (string $ruolo): bool => in_array($ruolo, $ruoli, true),
+    static fn (string $ruolo): bool => in_array($ruolo, $ruoli, true)
+        || ($ruolo === 'RECEPTION' && in_array('GESTORE', $ruoli, true)),
     ARRAY_FILTER_USE_KEY
 );
 ?>
