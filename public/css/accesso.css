@@ -1,0 +1,209 @@
+.access-page {
+    --access-width: 1200px;
+    --access-gutter: clamp(16px, 4vw, 48px);
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    background: var(--bg);
+}
+
+.access-header,
+.access-main {
+    width: 100%;
+    max-width: var(--access-width);
+    margin-inline: auto;
+    padding-inline: var(--access-gutter);
+}
+
+.access-header {
+    margin-block: 0;
+    padding-block: 24px;
+}
+
+.access-main {
+    display: grid;
+    flex: 1;
+    align-items: center;
+    padding-block: 12px 48px;
+}
+
+.access-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    min-height: 560px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    background: var(--surface);
+}
+
+.access-content {
+    align-self: center;
+    padding: clamp(32px, 5vw, 70px);
+}
+
+.access-content h1 {
+    margin: 0;
+    font-size: clamp(2.25rem, 4vw, 3.75rem);
+    font-weight: 900;
+    line-height: 1.04;
+    letter-spacing: -.06em;
+    text-wrap: balance;
+}
+
+.access-description,
+.access-footer,
+.access-hint {
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.access-description {
+    margin: 16px 0 0;
+}
+
+.access-form {
+    display: grid;
+    gap: 18px;
+    margin-top: 28px;
+}
+
+.access-field {
+    display: grid;
+    gap: 8px;
+}
+
+.access-field label {
+    font-size: .9rem;
+    font-weight: 700;
+}
+
+.access-field input,
+.access-field select {
+    display: block;
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 14px;
+    border: 1px solid #68686e;
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+}
+
+.access-password {
+    position: relative;
+}
+
+.access-password input {
+    padding-inline-end: 104px;
+}
+
+.access-toggle {
+    padding-inline: 10px;
+    border: 0;
+    border-radius: 7px;
+    background: var(--surface-soft);
+    color: var(--text);
+    font: inherit;
+    font-size: .875rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.access-password .access-toggle {
+    position: absolute;
+    inset-block: 5px;
+    inset-inline-end: 5px;
+}
+
+.access-form > .access-toggle {
+    justify-self: start;
+    min-height: 44px;
+    padding-inline: 14px;
+}
+
+.access-toggle:hover {
+    color: var(--accent);
+}
+
+.access-action {
+    min-height: 52px;
+    border-radius: 10px;
+    font-size: 1rem;
+}
+
+.access-next {
+    width: 100%;
+    margin-top: 24px;
+}
+
+.access-message {
+    margin: 20px 0 0;
+    padding: 12px 14px;
+    border: 1px solid #9c5252;
+    border-radius: 10px;
+    font-size: .9rem;
+    line-height: 1.5;
+}
+
+.access-error {
+    background: #342122;
+    color: #ffc1be;
+}
+
+.access-hint {
+    margin: 0;
+    font-size: .85rem;
+}
+
+.access-footer {
+    display: grid;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: .925rem;
+}
+
+.access-footer p {
+    margin: 0;
+}
+
+.access-footer a {
+    color: var(--accent);
+    font-weight: 700;
+    text-underline-offset: 3px;
+}
+
+.access-visual {
+    background:
+        linear-gradient(to right, rgba(16, 17, 19, .28), transparent 64%),
+        url("../images/portale-fitslot.webp") 75% center / cover;
+}
+
+@media (max-width: 760px) {
+    .access-header {
+        padding-block: 18px;
+    }
+
+    .access-main {
+        align-items: start;
+        padding-block: 4px 24px;
+    }
+
+    .access-card {
+        grid-template-columns: minmax(0, 1fr);
+        min-height: 0;
+        border-radius: 18px;
+    }
+
+    .access-content {
+        padding: 32px clamp(20px, 6vw, 32px);
+    }
+
+    .access-visual {
+        display: none;
+        background: none;
+    }
+}

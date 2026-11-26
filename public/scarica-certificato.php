@@ -9,10 +9,10 @@ header('Cache-Control: no-store');
 
 require_once dirname(__DIR__) . '/bootstrap.php';
 
-// UE-05: solo la reception può scaricare i certificati medici.
-if (!(new AutorizzazioneService())->haRuolo('RECEPTION')) {
+// UE-05: reception e gestore possono scaricare i certificati medici.
+if (!(new AutorizzazioneService())->haAccessoA(['RECEPTION', 'GESTORE'])) {
     http_response_code(403);
-    exit('Accesso riservato alla reception.');
+    exit('Accesso riservato alla reception e al gestore.');
 }
 
 

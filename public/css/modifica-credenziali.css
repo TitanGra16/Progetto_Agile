@@ -1,0 +1,30 @@
+.credentials-grid {
+    display: grid;
+    align-items: start;
+    gap: 20px;
+}
+
+.credentials-panel {
+    scroll-margin-top: 20px;
+}
+
+.credentials-panel:target {
+    border-color: var(--accent);
+}
+
+.credentials-panel .access-form {
+    margin-top: 22px;
+}
+
+.credentials-panel > p.credentials-success {
+    padding: 12px 14px;
+    border: 1px solid #4c725d;
+    background: #1d3429;
+    color: #a9e9c1;
+}
+
+@media (min-width: 820px) {
+    .credentials-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

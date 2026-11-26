@@ -1,0 +1,117 @@
+.profile-heading {
+    margin: 12px 0 28px;
+}
+
+.profile-heading h1 {
+    margin: 0;
+    font-size: clamp(2.5rem, 6vw, 4.25rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -.055em;
+}
+
+.profile-heading h1 span {
+    color: var(--accent);
+}
+
+.profile-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    margin-bottom: 10px;
+    color: var(--muted);
+    font-size: .9rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.profile-back:hover {
+    color: var(--accent);
+}
+
+.profile-grid {
+    display: grid;
+    align-items: start;
+    gap: 20px;
+    max-width: 740px;
+}
+
+.profile-panel {
+    max-width: none;
+    padding: clamp(22px, 4vw, 32px);
+}
+
+.profile-panel h2 {
+    margin: 0;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+.profile-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 18px;
+    margin: 18px 0 24px;
+}
+
+.profile-details > div {
+    padding-block: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-detail-wide {
+    grid-column: 1 / -1;
+}
+
+.profile-details dt,
+.profile-expiry dt {
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: .875rem;
+}
+
+.profile-details dd,
+.profile-expiry dd {
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.profile-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.profile-roles span {
+    padding: 4px 9px;
+    border-radius: 6px;
+    background: var(--surface-soft);
+    font-size: .875rem;
+}
+
+.profile-expiry,
+.profile-certificate p {
+    margin: 18px 0 0;
+}
+
+.profile-certificate p {
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.profile-certificate h2 {
+    scroll-margin-top: 24px;
+}
+
+.profile-certificate:has(h2:target) {
+    border-color: var(--accent);
+}
+
+@media (min-width: 820px) {
+    .profile-grid:has(.profile-certificate) {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        max-width: none;
+    }
+}

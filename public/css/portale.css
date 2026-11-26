@@ -1,4 +1,3 @@
-/* Portale e registrazione FitSlot: stesso stile delle pagine login/attivazione. */
 :root {
     color-scheme: dark;
     --bg: #101113;
@@ -8,7 +7,6 @@
     --muted: #bcbcbc;
     --accent: #ff741a;
     --border: #424247;
-    --obbligatorio: #ff0000;
 }
 
 * {
@@ -29,7 +27,9 @@ a {
 
 a:focus-visible,
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible,
+.table-scroll:focus-visible {
     outline: 3px solid var(--accent);
     outline-offset: 3px;
 }
@@ -52,8 +52,7 @@ input:focus-visible {
     text-decoration: none;
 }
 
-.wordmark span,
-.hero h1 span {
+.wordmark span {
     color: var(--accent);
 }
 
@@ -91,24 +90,6 @@ input:focus-visible {
     padding: 20px 24px 70px;
 }
 
-.hero {
-    padding: 70px 48px;
-    border: 1px solid rgba(255, 116, 26, .35);
-    border-radius: 24px;
-    background: linear-gradient(125deg, #252224, #17181a);
-    box-shadow: 0 22px 65px rgba(0, 0, 0, .22);
-    margin-bottom: 48px;
-}
-
-.eyebrow {
-    display: inline-block;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 1.6px;
-    font-size: 12px;
-    font-weight: 800;
-}
-
 h1 {
     font-size: clamp(34px, 5vw, 56px);
     line-height: 1.1;
@@ -116,16 +97,9 @@ h1 {
     letter-spacing: -1.4px;
 }
 
-.hero p,
-.page-heading p,
-.section-heading p,
 .feature-card p {
     color: var(--muted);
     line-height: 1.55;
-}
-
-.hero p {
-    max-width: 620px;
 }
 
 .hero-actions {
@@ -135,8 +109,7 @@ h1 {
     margin-top: 28px;
 }
 
-.button,
-.registration-form button {
+.button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -149,34 +122,18 @@ h1 {
     border: 1px solid var(--accent);
 }
 
-.primary,
-.registration-form button[type=submit] {
+.primary {
     color: #171717;
     background: var(--accent);
 }
 
-.secondary,
-.registration-form button[value=modifica] {
+.secondary {
     color: var(--text);
     background: transparent;
 }
 
-.button:hover,
-.registration-form button:hover {
+.button:hover {
     filter: brightness(1.12);
-}
-
-.section-heading {
-    margin: 0 0 22px;
-}
-
-.section-heading h2 {
-    font-size: 27px;
-    margin: 0 0 6px;
-}
-
-.section-heading p {
-    margin: 0;
 }
 
 .card-grid {
@@ -202,37 +159,70 @@ a.feature-card:hover {
     transition: .15s;
 }
 
-.feature-tag {
-    color: var(--accent);
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: .7px;
-}
-
-.feature-card h3 {
-    font-size: 22px;
-    margin: 12px 0 4px;
-}
-
 .feature-card p {
     margin: 0 0 18px;
     font-size: 14px;
 }
 
-.card-link {
-    margin-top: auto;
-    font-size: 13px;
-    font-weight: 800;
+.dashboard-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px 24px;
+    margin: 12px 0 28px;
+}
+
+.dashboard-heading h1 {
+    margin: 0;
+    font-size: clamp(2.5rem, 6vw, 4.25rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -.055em;
+}
+
+.dashboard-heading h1 span {
     color: var(--accent);
 }
 
-.unavailable {
-    opacity: .64;
-    border-style: dashed;
+.dashboard-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-content: center;
+    gap: 8px 16px;
+    min-height: 132px;
+    padding: clamp(20px, 4vw, 28px);
 }
 
-.unavailable .card-link {
-    color: var(--muted);
+.dashboard-card h2 {
+    margin: 0;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+.dashboard-card p {
+    margin: 0;
+}
+
+.dashboard-card-arrow {
+    grid-area: 1 / 2 / span 2;
+    align-self: center;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--surface-soft);
+    color: var(--accent);
+    font-size: 1.125rem;
+}
+
+.dashboard-card-primary {
+    border-color: var(--accent);
+}
+
+.dashboard-card-primary .dashboard-card-arrow {
+    background: var(--accent);
+    color: #171717;
 }
 
 .site-footer {
@@ -241,18 +231,6 @@ a.feature-card:hover {
     padding: 18px;
     font-size: 13px;
 }
-.obbligatorio{
-    color: (var(--obbligatorio)) !important;
-}
-.page-heading {
-    margin: 34px 0 24px;
-}
-
-.page-heading h1 {
-    font-size: clamp(30px, 4vw, 44px);
-    margin: 9px 0;
-}
-
 .panel {
     max-width: 740px;
     padding: 32px;
@@ -261,35 +239,110 @@ a.feature-card:hover {
     border-radius: 20px;
 }
 
-.rooms-panel {
+.wide-panel {
     max-width: none;
-    margin-top: 28px;
 }
 
-.rooms-table-wrapper {
+.panel-stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+}
+
+.content-panel[id] {
+    scroll-margin-top: 20px;
+}
+
+.content-panel h2 {
+    margin: 0;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+.panel-description {
+    margin: 12px 0 22px;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.access-form.inline-form {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    margin: 0;
+}
+
+.form-wide {
+    grid-column: 1 / -1;
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+@media (min-width: 651px) {
+    .access-form.two-column-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.table-scroll {
     overflow-x: auto;
+    margin-top: 18px;
 }
 
-.rooms-table {
+.data-table {
     width: 100%;
+    min-width: 32rem;
     border-collapse: collapse;
     text-align: left;
 }
 
-.rooms-table th,
-.rooms-table td {
-    padding: 14px 12px;
-    border-bottom: 1px solid var(--border);
+.pricing-table {
+    min-width: 54rem;
+}
+
+.pricing-table th:last-child,
+.pricing-table td:last-child {
+    width: 1%;
     white-space: nowrap;
 }
 
-.rooms-table thead th {
-    color: var(--muted);
-    font-size: 13px;
+.pricing-table td:nth-child(2),
+.pricing-table td:nth-child(6) {
+    white-space: nowrap;
 }
 
-.rooms-table tbody th {
-    color: var(--text);
+.data-table th,
+.data-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.data-table thead th {
+    color: var(--muted);
+    font-size: .875rem;
+}
+
+.data-table small {
+    display: block;
+    margin-top: 5px;
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.data-table .member-status {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.table-action {
+    color: var(--accent);
+    font-weight: 700;
+    white-space: nowrap;
+    text-underline-offset: 3px;
 }
 
 .visually-hidden {
@@ -311,33 +364,42 @@ a.feature-card:hover {
     border-left: 4px solid var(--accent);
 }
 
-.registration-form p {
-    margin: 14px 0;
+.panel > p.form-success {
+    padding: 12px 14px;
+    border: 1px solid #4c725d;
+    background: #1d3429;
+    color: #a9e9c1;
 }
 
-.registration-form label {
-    color: #e7e7e7;
-    font-size: 14px;
+.form-options {
+    min-width: 0;
+    margin: 0;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.form-options legend {
+    padding-inline: 6px;
     font-weight: 700;
 }
 
-.registration-form input:not([type=hidden]) {
-    width: 100%;
-    margin-top: 7px;
-    padding: 12px 14px;
-    background: var(--surface-soft);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    color: var(--text);
-    font: inherit;
+.form-errors p {
+    margin: 0;
 }
 
-.registration-form input::placeholder {
-    color: #979797;
+.form-errors ul {
+    margin: 8px 0 0;
+    padding-inline-start: 20px;
 }
 
-.registration-form button {
-    margin: 4px 8px 4px 0;
+.search-results {
+    margin-top: 28px;
+}
+
+.search-results h2 {
+    margin: 0 0 16px;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
 }
 
 .result-list {
@@ -346,50 +408,90 @@ a.feature-card:hover {
 }
 
 .result-card {
-    display: block;
-    padding: 20px;
+    padding: clamp(20px, 4vw, 28px);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    background: var(--surface-soft);
+    border-radius: 18px;
+    background: var(--surface);
 }
 
-.operation-summary {
-    margin-bottom: 24px;
-    padding: 18px 20px;
-    border: 1px solid var(--border);
-    border-left: 4px solid var(--accent);
-    border-radius: 12px;
-    background: var(--surface-soft);
+.result-card-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 20px;
 }
 
-.operation-summary h2 {
-    margin: 0 0 12px;
-    font-size: 18px;
-}
-
-.operation-summary dl,
-.operation-summary dl div {
+.result-card-heading h3 {
     margin: 0;
+    font-size: 1.25rem;
 }
 
-.operation-summary dl {
-    display: grid;
-    gap: 8px;
-}
-
-.operation-summary dl div {
-    display: grid;
-    grid-template-columns: 110px 1fr;
-    gap: 12px;
-}
-
-.operation-summary dt {
+.result-card-heading p {
+    margin: 6px 0 0;
     color: var(--muted);
-    font-weight: 700;
+    font-size: .9rem;
 }
 
-.operation-summary dd {
+.record-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 16px;
+    margin: 20px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.record-details dt {
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: .875rem;
+}
+
+.record-details dd {
     margin: 0;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.certificate-layout {
+    align-items: start;
+    margin-top: 20px;
+}
+
+.certificate-panel h2 {
+    margin: 0;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+.certificate-member {
+    margin: 12px 0 0;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.certificate-member strong {
+    color: var(--text);
+}
+
+.certificate-panel .record-details + .button {
+    margin-top: 20px;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    line-height: 1.5;
+}
+
+.form-check input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--accent);
 }
 
 @media (max-width: 650px) {
@@ -402,10 +504,6 @@ a.feature-card:hover {
         gap: 12px;
     }
 
-    .hero {
-        padding: 38px 23px;
-    }
-
     .card-grid {
         grid-template-columns: 1fr;
     }
@@ -413,118 +511,8 @@ a.feature-card:hover {
     .panel {
         padding: 20px;
     }
-}
 
-/* Stile per pagina di modifica password e email*/
-.panel-password {
-    margin-top: 24px;
-}
-
-/* Campo password con icona per mostrare/nascondere */
-.campo-password {
-    position: relative;
-    display: block;
-    width: 100%;
-    margin-top: 7px;
-}
-
-.registration-form .campo-password input {
-    margin-top: 0;
-    padding-right: 55px;
-}
-
-.registration-form .campo-password .mostra-password {
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    margin: 0;
-    padding: 6px;
-
-    background: transparent;
-    border: none;
-    border-radius: 50%;
-
-    color: #bcbcbc;
-    cursor: pointer;
-}
-
-.registration-form .campo-password .mostra-password:hover {
-    color: #ff741a;
-    filter: none;
-}
-
-.mostra-password svg {
-    width: 23px;
-    height: 23px;
-
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-/* UE-53: avviso certificato medico assente o scaduto */
-
-.avviso-certificato {
-    background-color: #fff1f2;
-    border: 2px solid #e11d48;
-    border-radius: 10px;
-    padding: 20px;
-    margin-top: 15px;
-    color: #881337;
-}
-
-.avviso-certificato strong {
-    color: #be123c;
-    font-size: 17px;
-}
-
-.avviso-certificato p {
-    color: #881337;
-    margin-top: 12px;
-}
-
-/* UE-53: spazio tra informazioni personali e certificato medico */
-
-.panel-certificato {
-    margin-top: 24px;
-}
-
-/* UE-53: stato del certificato valido */
-
-.stato-certificato-valido {
-    color: #4ade80;
-    font-weight: 700;
-}
-
-/* UE-53: link gestione certificato nella ricerca iscritti */
-
-.link-certificato {
-    display: inline-block;
-    margin-top: 14px;
-    color: #ff7a15;
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.link-certificato:hover {
-    text-decoration: underline;
-}
-
-.stato-certificato-ricerca.valido {
-    color: #4ade80;
-    font-weight: 700;
-}
-
-.stato-certificato-ricerca.scaduto,
-.stato-certificato-ricerca.assente {
-    color: #fb7185;
-    font-weight: 700;
+    .access-form.inline-form {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

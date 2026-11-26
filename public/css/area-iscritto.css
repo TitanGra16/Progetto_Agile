@@ -1,0 +1,138 @@
+.member-page {
+    background: var(--bg);
+}
+
+.member-page .topbar {
+    padding-block: 18px;
+}
+
+.member-page .topbar nav {
+    gap: 16px;
+}
+
+.member-page .topbar nav a,
+.member-page .logout-form button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+}
+
+.member-page .logout-form button {
+    padding-inline: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.member-hero {
+    padding: clamp(28px, 6vw, 68px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    background:
+        linear-gradient(90deg, #171719 18%, #171719eb 36%, #171719b3 58%, #17171940 100%),
+        url("../images/portale-fitslot.webp") center 56% / cover,
+        var(--surface);
+}
+
+.member-hero h1 {
+    margin: 0 0 24px;
+    font-size: clamp(2.5rem, 6vw, 4.75rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -.055em;
+}
+
+.member-hero h1 span {
+    color: var(--accent);
+}
+
+.member-action {
+    gap: 10px;
+    min-height: 48px;
+    border-radius: 10px;
+}
+
+.member-certificate {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px 24px;
+    margin-top: 20px;
+    padding: clamp(22px, 4vw, 32px);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--surface);
+}
+
+.member-certificate-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+}
+
+.member-certificate h2 {
+    margin: 0;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+.member-certificate p {
+    margin: 10px 0 0;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.member-status {
+    padding: 5px 9px;
+    border-radius: 6px;
+    background: var(--surface-soft);
+    font-size: .875rem;
+    font-weight: 700;
+}
+
+.member-status.valido,
+.member-status.active {
+    background: #1d3429;
+    color: #a9e9c1;
+}
+
+.member-status.scaduto {
+    background: #412829;
+    color: #ffc0bb;
+}
+
+.member-status.assente,
+.member-status.pending {
+    background: #45321e;
+    color: #ffce9c;
+}
+
+.member-certificate .secondary {
+    border-color: var(--border);
+}
+
+.member-certificate .secondary:hover {
+    border-color: var(--accent);
+}
+
+@media (max-width: 650px) {
+    .member-page .topbar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 14px;
+    }
+
+    .member-page .topbar nav {
+        gap: 12px;
+    }
+
+    .member-page .page-shell {
+        padding-top: 4px;
+    }
+
+    .member-hero {
+        border-radius: 18px;
+        background-position: 60% center;
+    }
+}

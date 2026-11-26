@@ -28,35 +28,31 @@ if (!$autorizzazione->haAccessoA(['ISTRUTTORE'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Area istruttore - FitSlot</title>
     <link rel="stylesheet" href="css/portale.css">
+    <link rel="stylesheet" href="css/area-iscritto.css">
 </head>
-<body>
+<body class="member-page">
     <header class="topbar">
-        <a class="wordmark" href="index.php">FIT<span>SLOT</span></a>
+        <a class="wordmark" href="index.php" aria-label="FitSlot, pagina iniziale">FIT<span>SLOT</span></a>
         <nav aria-label="Navigazione principale">
-            <a href="index.php">Portale</a>
-            <a href="login.php">Accedi</a>
+            <a href="homepage.php">Le mie aree</a>
+            <form class="logout-form" action="logout.php" method="post">
+                <button type="submit">Esci</button>
+            </form>
         </nav>
     </header>
 
     <main class="page-shell">
-        <div class="page-heading">
-            <span class="eyebrow">Vista istruttore</span>
-            <h1>Area istruttore</h1>
-            <p>Qui l'istruttore potrà consultare le proprie lezioni e attività.</p>
-        </div>
-        <section class="card-grid" aria-label="Funzioni dell'istruttore">
-            <article class="feature-card">
-                <span class="feature-tag">ISTRUTTORE</span>
-                <h3>Le mie lezioni</h3>
-                <p>Visualizza le lezioni assegnate e gli iscritti prenotati.</p>
-            </article>
-            <article class="feature-card">
-                <span class="feature-tag">ISTRUTTORE</span>
-                <h3>Disponibilità</h3>
-                <p>Consulta e aggiorna le disponibilità per le attività.</p>
-            </article>
+        <header class="dashboard-heading">
+            <h1>Area <span>istruttore</span></h1>
+        </header>
+
+        <section class="panel content-panel" aria-labelledby="lezioni-disponibilita">
+            <h2 id="lezioni-disponibilita">Lezioni e disponibilità</h2>
+            <p class="panel-description">Le funzioni per consultare le lezioni e gestire le disponibilità sono in preparazione.</p>
+            <a class="button secondary member-action" href="profilo.php">
+                Il mio profilo <span aria-hidden="true">&rarr;</span>
+            </a>
         </section>
     </main>
-    <footer class="site-footer">FitSlot · Area istruttore</footer>
 </body>
 </html>

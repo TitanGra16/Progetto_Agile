@@ -28,41 +28,36 @@ if (!$autorizzazione->haAccessoA(['GESTORE'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Area gestore - FitSlot</title>
     <link rel="stylesheet" href="css/portale.css">
+    <link rel="stylesheet" href="css/area-iscritto.css">
 </head>
-<body>
+<body class="member-page">
     <header class="topbar">
-        <a class="wordmark" href="index.php">FIT<span>SLOT</span></a>
+        <a class="wordmark" href="index.php" aria-label="FitSlot, pagina iniziale">FIT<span>SLOT</span></a>
         <nav aria-label="Navigazione principale">
-            <a href="index.php">Portale</a>
-            <a href="login.php">Accedi</a>
+            <a href="homepage.php">Le mie aree</a>
+            <form class="logout-form" action="logout.php" method="post">
+                <button type="submit">Esci</button>
+            </form>
         </nav>
     </header>
 
     <main class="page-shell">
-        <div class="page-heading">
-            <span class="eyebrow">Vista gestore</span>
-            <h1>Area gestore</h1>
-            <p>Qui il gestore potrà controllare le attività e l'andamento del centro.</p>
-        </div>
-        <section class="card-grid" aria-label="Funzioni del gestore">
-            <a class="feature-card" href="tipi-abbonamento.php">
-                <span class="feature-tag">UE-08</span>
-                <h3>Tipi di abbonamento</h3>
-                <p>Gestisci il listino e i piani di abbonamento.</p>
-                <span class="card-link">Apri gestione listino &rarr;</span>
+        <header class="dashboard-heading">
+            <h1>Area <span>gestore</span></h1>
+        </header>
+
+        <nav class="card-grid" aria-label="Funzioni del gestore">
+            <a class="feature-card dashboard-card" href="aggiunge-sala.php">
+                <h2>Sale</h2>
+                <p>Consulta capienze e orari oppure aggiungi una sala.</p>
+                <span class="dashboard-card-arrow" aria-hidden="true">&rarr;</span>
             </a>
-            <article class="feature-card">
-                <span class="feature-tag">GESTORE</span>
-                <h3>Aggiungi sala</h3>
-                <p>Aggiungi una nuova sala al sistema.</p>
+            <a class="feature-card dashboard-card" href="tipi-abbonamento.php">
+                <h2>Listino abbonamenti</h2>
+                <p>Crea e modifica piani, prezzi e servizi inclusi.</p>
+                <span class="dashboard-card-arrow" aria-hidden="true">&rarr;</span>
             </a>
-            <article class="unavailable">
-                <span class="feature-tag">GESTORE</span>
-                <h3>Gestione centro</h3>
-                <p>Accedi alle funzioni di gestione del centro sportivo.</p>
-            </article>
-        </section>
+        </nav>
     </main>
-    <footer class="site-footer">FitSlot · Area gestore</footer>
 </body>
 </html>

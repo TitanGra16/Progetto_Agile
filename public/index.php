@@ -16,49 +16,36 @@ $autenticato = $sessione->getIdUtente() !== null;
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FitSlot — Portale</title>
     <link rel="stylesheet" href="css/portale.css">
+    <link rel="stylesheet" href="css/index.css">
 </head>
-<body>
-    <header class="topbar">
-        <a class="wordmark" href="index.php">FIT<span>SLOT</span></a>
+<body class="portal-page">
+    <header class="topbar portal-header">
+        <a class="wordmark" href="index.php" aria-label="FitSlot, pagina iniziale">FIT<span>SLOT</span></a>
     </header>
 
-    <main class="page-shell">
-        <section class="hero" aria-labelledby="portal-title">
-            <span class="eyebrow">Gestione centro sportivo</span>
-            <h1 id="portal-title">Benvenuto su <span>FitSlot</span></h1>
-            <div class="hero-actions">
-                <a class="button primary" href="<?= $autenticato ? 'homepage.php' : 'login.php' ?>">
-                    <?= $autenticato ? 'Vai all’area personale' : 'Accedi al tuo account' ?>
-                </a>
-            </div>
-        </section>
+    <main class="page-shell portal-main">
+        <section class="portal-hero" aria-labelledby="portal-title">
+            <div class="portal-copy">
+                <h1 id="portal-title">Il tuo centro <span class="portal-title-line">sportivo <span class="portal-accent">online.</span></span></h1>
+                <p>Il portale per iscritti e staff del centro sportivo.</p>
 
-        <section aria-labelledby="services-title">
-            <div class="section-heading">
-                <h2 id="services-title">Funzionalità</h2>
+                <div class="hero-actions">
+                    <a class="button primary" href="<?= $autenticato ? 'homepage.php' : 'login.php' ?>">
+                        <?= $autenticato ? 'Vai all’area personale' : 'Accedi' ?>
+                        <span aria-hidden="true">&rarr;</span>
+                    </a>
+                    <?php if (!$autenticato): ?>
+                        <a class="button secondary" href="richiesta-attivazione.php">Attiva account</a>
+                    <?php endif; ?>
+                </div>
             </div>
-            <div class="card-grid">
-                <a class="feature-card" href="<?= $autenticato ? 'homepage.php' : 'login.php' ?>">
-                    <span class="feature-tag">UE-03</span>
-                    <h3><?= $autenticato ? 'Area personale' : 'Login' ?></h3>
-                    <p><?= $autenticato ? 'Accedi alla pagina riservata della tua sessione.' : 'Entra utilizzando email e password.' ?></p>
-                    <span class="card-link">Apri →</span>
-                </a>
-                <a class="feature-card" href="tipi-abbonamento.php">
-                    <span class="feature-tag">UE-08</span>
-                    <h3>Tipi di abbonamento</h3>
-                    <p>Gestisci il listino e i piani di abbonamento. Accesso riservato al gestore.</p>
-                    <span class="card-link">Apri gestione listino &rarr;</span>
-                </a>
-                <a class="feature-card" href="richiesta-attivazione.php">
-                    <span class="feature-tag">UE-69</span>
-                    <h3>Attivazione account</h3>
-                    <p>Richiedi un nuovo link se il tuo account è ancora in attesa di attivazione.</p>
-                    <span class="card-link">Richiedi link →</span>
-                </a>
+
+            <div class="portal-visual">
+                <img src="images/portale-fitslot.webp" width="1600" height="800" alt="" fetchpriority="high">
             </div>
         </section>
     </main>
-    <footer class="site-footer">FitSlot · Progetto universitario Agile Lady!TheLemons!</footer>
+
+    <footer class="site-footer portal-footer">Progetto universitario Agile · Team LadyTheLemons!</footer>
 </body>
 </html>

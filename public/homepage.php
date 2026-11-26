@@ -14,98 +14,74 @@ if ($sessione->getIdUtente() === null) {
     exit;
 }
 
-$autorizzazione = new AutorizzazioneService();
-$ruoli = $autorizzazione->getRuoliUtente();
-$isGestore = in_array('GESTORE', $ruoli, true);
-
-$mostraIscritto = $isGestore || in_array('ISCRITTO', $ruoli, true);
-$mostraReception = $isGestore || in_array('RECEPTION', $ruoli, true);
-$mostraIstruttore = $isGestore || in_array('ISTRUTTORE', $ruoli, true);
-$mostraGestore = $isGestore;
-
+$ruoli = (new AutorizzazioneService())->getRuoliUtente();
+$aree = [
+    'GESTORE' => [
+        'percorso' => 'vista-gestore.php',
+        'titolo' => 'Area gestore',
+        'descrizione' => 'Gestisci le sale e il listino del centro sportivo.',
+    ],
+    'RECEPTION' => [
+        'percorso' => 'vista-reception.php',
+        'titolo' => 'Area reception',
+        'descrizione' => 'Cerca e registra gli iscritti, gestisci i certificati medici.',
+    ],
+    'ISCRITTO' => [
+        'percorso' => 'vista-iscritto.php',
+        'titolo' => 'Area iscritto',
+        'descrizione' => 'Consulta il tuo profilo e lo stato del certificato medico.',
+    ],
+    'ISTRUTTORE' => [
+        'percorso' => 'vista-istruttore.php',
+        'titolo' => 'Area istruttore',
+        'descrizione' => 'Spazio dedicato alle lezioni e alle disponibilità degli istruttori.',
+    ],
+];
+$areeVisibili = array_filter(
+    $aree,
+    static fn (string $ruolo): bool => in_array($ruolo, $ruoli, true)
+        || ($ruolo === 'RECEPTION' && in_array('GESTORE', $ruoli, true)),
+    ARRAY_FILTER_USE_KEY
+);
 ?>
 <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Area personale - FitSlot</title>
+    <title>Le mie aree - FitSlot</title>
     <link rel="stylesheet" href="css/portale.css">
+    <link rel="stylesheet" href="css/area-iscritto.css">
 </head>
-<body>
+<body class="member-page">
     <header class="topbar">
-        <a class="wordmark" href="index.php">FIT<span>SLOT</span></a>
-    <nav aria-label="Navigazione principale">
-        <a href="index.php">Portale</a>
-
-        <!-- Accesso al profilo personale per tutti gli utenti autenticati -->
-        <a href="profilo.php">Il mio profilo</a>
-        <form class="logout-form" action="logout.php" method="POST">
-            <button type="submit">Esci</button>
-        </form>
-    </nav>
-
+        <a class="wordmark" href="index.php" aria-label="FitSlot, pagina iniziale">FIT<span>SLOT</span></a>
+        <nav aria-label="Navigazione principale">
+            <a href="profilo.php">Il mio profilo</a>
+            <form class="logout-form" action="logout.php" method="post">
+                <button type="submit">Esci</button>
+            </form>
+        </nav>
     </header>
 
     <main class="page-shell">
-        <section class="hero" aria-labelledby="area-title">
-            <span class="eyebrow">Area personale</span>
-            <h1 id="area-title">Bentornato su <span>FitSlot</span></h1>
-            <p>Seleziona l'area che vuoi utilizzare.</p>
-            <p>Ruoli associati: <strong><?= htmlspecialchars(implode(', ', $ruoli), ENT_QUOTES, 'UTF-8') ?></strong></p>
-        </section>
+        <header class="dashboard-heading">
+            <h1>Le mie <span>aree</span></h1>
+        </header>
 
-        <section aria-labelledby="views-title">
-            <div class="section-heading">
-                <h2 id="views-title">Le tue aree</h2>
-                <p>Le funzioni mostrate dipendono dai ruoli assegnati al tuo account.</p>
-            </div>
-
-            <div class="card-grid">
-                <?php if ($mostraIscritto): ?>
-                    <a class="feature-card" href="vista-iscritto.php">
-                        <span class="feature-tag">ISCRITTO</span>
-                        <h3>Area personale</h3>
-                        <p>Consulta prenotazioni, profilo e informazioni personali.</p>
-                        <span class="card-link">Apri area iscritto →</span>
+        <?php if ($areeVisibili === []): ?>
+            <p class="panel">Nessuna area disponibile per questo account.</p>
+        <?php else: ?>
+            <nav class="card-grid" aria-label="Aree disponibili">
+                <?php foreach ($areeVisibili as $area): ?>
+                    <a class="feature-card dashboard-card" href="<?= $area['percorso'] ?>">
+                        <h2><?= $area['titolo'] ?></h2>
+                        <p><?= $area['descrizione'] ?></p>
+                        <span class="dashboard-card-arrow" aria-hidden="true">&rarr;</span>
                     </a>
-                <?php endif; ?>
-
-                <?php if ($mostraReception): ?>
-                    <a class="feature-card" href="vista-reception.php">
-                        <span class="feature-tag">RECEPTION</span>
-                        <h3>Area reception</h3>
-                        <p>Gestisci iscritti e attività quotidiane del centro.</p>
-                        <span class="card-link">Apri area reception →</span>
-                    </a>
-                <?php endif; ?>
-
-                <?php if ($mostraIstruttore): ?>
-                    <a class="feature-card" href="vista-istruttore.php">
-                        <span class="feature-tag">ISTRUTTORE</span>
-                        <h3>Area istruttore</h3>
-                        <p>Consulta lezioni, iscritti prenotati e disponibilità.</p>
-                        <span class="card-link">Apri area istruttore →</span>
-                    </a>
-                <?php endif; ?>
-
-                <?php if ($mostraGestore): ?>
-                    <a class="feature-card" href="vista-gestore.php">
-                        <span class="feature-tag">GESTORE</span>
-                        <h3>Area gestore</h3>
-                        <p>Controlla le attività del centro e quelle degli altri ruoli.</p>
-                        <span class="card-link">Apri area gestore →</span>
-                    </a>
-                    <a class="feature-card" href="tipi-abbonamento.php">
-                        <span class="feature-tag">UE-08</span>
-                        <h3>Tipi di abbonamento</h3>
-                        <p>Gestisci il listino e i piani di abbonamento.</p>
-                        <span class="card-link">Apri gestione listino &rarr;</span>
-                    </a>
-                <?php endif; ?>
-            </div>
-        </section>
+                <?php endforeach; ?>
+            </nav>
+        <?php endif; ?>
     </main>
-    <footer class="site-footer">FitSlot · Area personale</footer>
 </body>
 </html>

@@ -51,11 +51,11 @@ class TipoAbbonamentoRepository
         $servizi = json_encode($dati['servizi_inclusi'], JSON_THROW_ON_ERROR);
         $this->connessione->execute_query(
             'INSERT INTO tipi_abbonamento
-             (codice, nome, categoria, prezzo, ingressi_totali, durata_mesi, servizi_inclusi,
+             (nome, categoria, prezzo, ingressi_totali, durata_mesi, servizi_inclusi,
               sconto_studenti_percentuale, studenti_dalle, studenti_alle, attivo)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
-                $dati['codice'], $dati['nome'], $dati['categoria'], $dati['prezzo'],
+                $dati['nome'], $dati['categoria'], $dati['prezzo'],
                 $dati['ingressi_totali'], $dati['durata_mesi'], $servizi,
                 $dati['sconto_studenti_percentuale'], $dati['studenti_dalle'],
                 $dati['studenti_alle'], $dati['attivo'],

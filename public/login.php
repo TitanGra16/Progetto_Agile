@@ -50,137 +50,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Accedi - FitSlot</title>
-
-    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/portale.css">
+    <link rel="stylesheet" href="css/accesso.css">
     <script src="js/login.js" defer></script>
 </head>
+<body class="access-page">
+    <header class="topbar access-header">
+        <a class="wordmark" href="index.php" aria-label="FitSlot, pagina iniziale">FIT<span>SLOT</span></a>
+    </header>
 
-<body>
+    <main class="page-shell access-main">
+        <section class="access-card" aria-labelledby="access-title">
+            <div class="access-content">
+                <h1 id="access-title">Accedi</h1>
 
-    <main class="login-page">
+                <?php if ($errore !== null): ?>
+                    <p class="access-message access-error" role="alert">
+                        <?= htmlspecialchars($errore, ENT_QUOTES, 'UTF-8') ?>
+                    </p>
+                <?php endif; ?>
 
-        <section class="login-card" aria-labelledby="login-title">
+                <form class="access-form" method="post" action="login.php">
+                    <div class="access-field">
+                        <label for="email">Indirizzo email</label>
+                        <input id="email" name="email" type="email" autocomplete="username"
+                               value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?>" required>
+                    </div>
 
-            <!-- Logo -->
-            <div class="brand">
-                <svg class="brand-icon" viewBox="0 0 100 60" aria-hidden="true">
-                    <g fill="currentColor">
-                        <rect x="7" y="20" width="10" height="20" rx="3"/>
-                        <rect x="19" y="12" width="12" height="36" rx="3"/>
-                        <rect x="69" y="12" width="12" height="36" rx="3"/>
-                        <rect x="83" y="20" width="10" height="20" rx="3"/>
-                        <rect x="28" y="26" width="44" height="8" rx="3"/>
-                    </g>
-                </svg>
+                    <div class="access-field">
+                        <label for="password">Password</label>
+                        <div class="access-password">
+                            <input id="password" name="password" type="password" autocomplete="current-password" required>
+                            <button class="access-toggle" type="button" data-password-toggle
+                                    aria-controls="password" aria-label="Mostra password" hidden>Mostra</button>
+                        </div>
+                    </div>
 
-                <h1>FITSLOT</h1>
-                <p class="slogan">
-                    SUPERA I TUOI <span>LIMITI.</span>
-                </p>
+                    <button class="button primary access-action" type="submit">Accedi</button>
+                </form>
+
+                <div class="access-footer">
+                    <p>Primo accesso? <a href="richiesta-attivazione.php">Attiva account</a></p>
+                    <p>Per registrarti, rivolgiti alla reception.</p>
+                </div>
             </div>
 
-            <!-- Titolo -->
-            <div class="login-heading">
-                <h2 id="login-title">Accedi al tuo account</h2>
-                <p>Torna ad allenarti con FitSlot.</p>
-            </div>
-
-            <!-- Messaggi di errore -->
-            <?php if ($errore !== null): ?>
-                <p class="error-message" role="alert">
-                    <?= htmlspecialchars($errore, ENT_QUOTES, 'UTF-8') ?>
-                </p>
-            <?php endif; ?>
-
-            <!-- Form di login -->
-            <form action="login.php" method="POST" class="login-form">
-
-                <!-- Email -->
-                <div class="input-group">
-                    <label for="email" class="sr-only">
-                        Indirizzo email
-                    </label>
-
-                    <span class="field-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <rect x="3" y="5" width="18" height="14" rx="2"/>
-                            <path d="m3 7 9 6 9-6"/>
-                        </svg>
-                    </span>
-
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="Indirizzo email"
-                        autocomplete="email"
-                        value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?>"
-                        required
-                    >
-                </div>
-
-                <!-- Password -->
-                <div class="input-group">
-                    <label for="password" class="sr-only">
-                        Password
-                    </label>
-
-                    <span class="field-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <rect x="5" y="10" width="14" height="11" rx="2"/>
-                            <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
-                        </svg>
-                    </span>
-
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Password"
-                        autocomplete="current-password"
-                        required
-                    >
-
-                    <button
-                        type="button"
-                        class="toggle-password"
-                        data-password-toggle
-                        aria-label="Mostra password"
-                        aria-pressed="false"
-                    >
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Pulsante Accedi -->
-                <button type="submit" class="login-button">
-                    ACCEDI
-                </button>
-
-            </form>
-
-            <!-- Registrazione -->
-            <p class="register-text">
-                Non hai ancora un account? Passa in una nostra sede!
-                <!--<span class="register-highlight">Registrati</span> -->
-            </p>
-            <p class="activation-help">
-                Non hai ancora attivato l'account?
-                <a href="richiesta-attivazione.php">Richiedi un nuovo link</a>
-            </p>
-
+            <div class="access-visual" aria-hidden="true"></div>
         </section>
-
     </main>
-
 </body>
 </html>
