@@ -126,7 +126,7 @@ $pagina = (new RicercaIscrittoController())->gestisciRichiesta($_SERVER['REQUEST
                                 </div>
                                 <div>
                                     <dt>Stato iscrizione</dt>
-                                    <dd><?= htmlspecialchars($statoIscritto, ENT_QUOTES, 'UTF-8') ?></dd>
+                                    <dd><span class="member-status <?= htmlspecialchars(strtolower($statoIscritto), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($statoIscritto, ENT_QUOTES, 'UTF-8') ?></span></dd>
                                 </div>
                                 <div>
                                     <dt>Certificato medico</dt>

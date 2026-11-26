@@ -90,7 +90,8 @@
     font-weight: 700;
 }
 
-.member-status.valido {
+.member-status.valido,
+.member-status.active {
     background: #1d3429;
     color: #a9e9c1;
 }
@@ -100,7 +101,8 @@
     color: #ffc0bb;
 }
 
-.member-status.assente {
+.member-status.assente,
+.member-status.pending {
     background: #45321e;
     color: #ffce9c;
 }
