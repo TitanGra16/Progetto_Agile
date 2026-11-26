@@ -15,7 +15,7 @@ if ($sessione->getIdUtente() === null) {
     exit;
 }
 
-if (!$autorizzazione->haAccessoA(['RECEPTION'])) {
+if (!$autorizzazione->haAccessoA(['RECEPTION', 'GESTORE'])) {
     http_response_code(403);
     exit('Accesso non autorizzato.');
 }
@@ -57,7 +57,7 @@ if (!$autorizzazione->haAccessoA(['RECEPTION'])) {
                 <p>Crea l’anagrafica di un nuovo iscritto.</p>
                 <span class="dashboard-card-arrow" aria-hidden="true">&rarr;</span>
             </a>
-            <?php if ($autorizzazione->haRuolo('RECEPTION')): ?>
+            <?php if ($autorizzazione->haAccessoA(['RECEPTION', 'GESTORE'])): ?>
                 <a class="feature-card dashboard-card" href="certificati-medici.php">
                     <h2>Certificati medici</h2>
                     <p>Registra la scadenza e archivia una copia PDF.</p>

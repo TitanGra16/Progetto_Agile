@@ -15,7 +15,7 @@ if ($sessioneUtente->getIdUtente() === null) {
     exit;
 }
 
-if (!(new AutorizzazioneService())->haAccessoA(['RECEPTION'])) {
+if (!(new AutorizzazioneService())->haAccessoA(['RECEPTION', 'GESTORE'])) {
     http_response_code(403);
     exit('Accesso non autorizzato.');
 }

@@ -18,11 +18,13 @@ final class AutorizzazioneServiceTest extends TestCase
         return new AutorizzazioneService($repository, $sessione);
     }
 
-    public function testGestoreAccedeSoloAllaPropriaArea(): void
+    public function testGestoreAccedeAllaPropriaAreaEAlleFunzioniReceptionAbilitate(): void
     {
         $servizio = $this->servizioConRuoli(['GESTORE']);
 
         self::assertTrue($servizio->haAccessoA(['GESTORE']));
+        self::assertTrue($servizio->haAccessoA(['RECEPTION', 'GESTORE']));
+        self::assertFalse($servizio->haRuolo('RECEPTION'));
         self::assertFalse($servizio->haAccessoA(['RECEPTION']));
         self::assertFalse($servizio->haAccessoA(['ISTRUTTORE']));
     }
@@ -34,6 +36,7 @@ final class AutorizzazioneServiceTest extends TestCase
         self::assertTrue($servizio->haAccessoA(['ISCRITTO']));
         self::assertTrue($servizio->haAccessoA(['ISTRUTTORE']));
         self::assertFalse($servizio->haAccessoA(['GESTORE']));
+        self::assertFalse($servizio->haAccessoA(['RECEPTION', 'GESTORE']));
     }
 
     public function testUtenteSenzaRuoliNonAccede(): void

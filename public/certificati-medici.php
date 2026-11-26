@@ -13,9 +13,9 @@ header('Cache-Control: no-store');
 require_once dirname(__DIR__) . '/bootstrap.php';
 session_start(['cookie_httponly' => true, 'cookie_samesite' => 'Lax']);
 
-if (!(new AutorizzazioneService())->haRuolo('RECEPTION')) {
+if (!(new AutorizzazioneService())->haAccessoA(['RECEPTION', 'GESTORE'])) {
     http_response_code(403);
-    exit('Accesso riservato alla reception.');
+    exit('Accesso riservato alla reception e al gestore.');
 }
 
 $metodo = $_SERVER['REQUEST_METHOD'];

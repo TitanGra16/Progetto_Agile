@@ -20,12 +20,12 @@ if ($sessioneUtente->getIdUtente() === null) {
 }
 
 $autorizzazione = new AutorizzazioneService();
-if (!$autorizzazione->haAccessoA(['RECEPTION'])) {
+if (!$autorizzazione->haAccessoA(['RECEPTION', 'GESTORE'])) {
     http_response_code(403);
     exit('Accesso non autorizzato.');
 }
 
-$puoGestireCertificati = $autorizzazione->haRuolo('RECEPTION');
+$puoGestireCertificati = $autorizzazione->haAccessoA(['RECEPTION', 'GESTORE']);
 $pagina = (new RicercaIscrittoController())->gestisciRichiesta($_SERVER['REQUEST_METHOD'], $_POST);
 ?>
 <!DOCTYPE html>

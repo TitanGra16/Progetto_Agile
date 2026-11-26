@@ -47,6 +47,11 @@ if (!$autorizzazione->haAccessoA(['GESTORE'])) {
         </header>
 
         <nav class="card-grid" aria-label="Funzioni del gestore">
+            <a class="feature-card dashboard-card" href="vista-reception.php">
+                <h2>Area reception</h2>
+                <p>Cerca e registra gli iscritti, gestisci i certificati medici.</p>
+                <span class="dashboard-card-arrow" aria-hidden="true">&rarr;</span>
+            </a>
             <a class="feature-card dashboard-card" href="aggiunge-sala.php">
                 <h2>Sale</h2>
                 <p>Consulta capienze e orari oppure aggiungi una sala.</p>
