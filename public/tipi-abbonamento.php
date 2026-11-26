@@ -267,10 +267,7 @@ $categorie = [
                             Sconto studenti del 20%
                         </label>
                         <p class="access-hint" id="aiuto-studenti">Per i pacchetti, su attività con inizio tra le 08:00 e le 13:30.</p>
-                        <label class="form-check">
-                            <input type="checkbox" name="attivo" value="1" <?= !empty($modulo['attivo']) ? 'checked' : '' ?>>
-                            Piano disponibile nel listino
-                        </label>
+                        <input type="hidden" name="attivo" value="<?= !empty($modulo['attivo']) ? '1' : '0' ?>">
                     </fieldset>
 
                     <div class="form-actions form-wide">
